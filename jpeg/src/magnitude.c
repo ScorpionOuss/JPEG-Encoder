@@ -1,8 +1,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+int32_t puissance(int32_t a, int32_t b)
+// renvoie a**b si b >= 0
+{
+    if (b == 0){
+        return 1;
+    }
+    else {
+        return a*puissance(a, b-1);
+    }
+}
+
+
 int32_t calc_magnitude(int32_t entier)
-// renvoie la magnetude d'un entier
+// renvoie la magnitude d'un entier
 {
     int32_t p = 0;
     int32_t n = 1;
@@ -14,20 +26,28 @@ int32_t calc_magnitude(int32_t entier)
     return p;
 }
 
+int32_t num_magnitude(int32_t entier, int32_t magnitude)
+// renvoie l'indice d'un entier dans sa magnitude
+{
+    if (entier >= 0){
+        return entier;
+    }
+    else {
+        return puissance(2, magnitude) - abs(entier) -1;
+    }
+}
+
+
 int main(void)
 {
-    printf("%i \n", calc_magnitude(0));
-    printf("%i \n", calc_magnitude(1));
-    printf("%i \n", calc_magnitude(-2));
-    printf("%i \n", calc_magnitude(3));
-    printf("%i \n", calc_magnitude(-4));
-    printf("%i \n", calc_magnitude(5));
-    printf("%i \n", calc_magnitude(-6));
-    printf("%i \n", calc_magnitude(7));
-    printf("%i \n", calc_magnitude(-8));
-    printf("%i \n", calc_magnitude(9));
-    printf("%i \n", calc_magnitude(-10));
-    printf("%i \n", calc_magnitude(16));
+    int32_t a;
+    a = calc_magnitude(-1);
+    printf("%i, %i\n", -1, a);
+    printf("%i \n", num_magnitude(-1, a));
+
+    a = calc_magnitude(-8);
+    printf("%i, %i \n", -8, a);
+    printf("%i \n", num_magnitude(-8, a));
 
  return EXIT_SUCCESS;
 }
