@@ -47,6 +47,7 @@ float **dtc(int t[8][8])
     return nouveau;
 }
 
+/*
 int main(void)
 {
     float **p = dtc(t);
@@ -60,4 +61,4 @@ int main(void)
         }
     }
     return EXIT_SUCCESS;
-}
+}*/
