@@ -2,48 +2,51 @@
 #include <stdio.h>
 #include <jpeg_writer.h>
 #include <RLE.h>
+#include <dct_zig_zag_quantification.h>
+#include <math.h>
 /* partie recupération des datas */
 int32_t **recuper_data(const char* file_pgm)
 {
-  FILE* fichier = fopen(file_pgm, "r+");
-  int32_t** data = malloc(8*sizeof(int32_t*));
-  for (size_t i = 0; i < 8; i++) {
-    data[i] = malloc(8*sizeof(int32_t));
-  }
-  fseek(fichier, 11, SEEK_SET);
-  for (size_t y = 0; y < 8; y++) {
-    for (size_t x = 0; x < 8; x++) {
-      data[y][x] = fgetc(fichier);
+    FILE* fichier = fopen(file_pgm, "r+");
+    int32_t** data = malloc(8*sizeof(int32_t*));
+    for (size_t i = 0; i < 8; i++) {
+      data[i] = malloc(8*sizeof(int32_t));
     }
-  }
-  fclose(fichier);
-  return data;
+    fseek(fichier, 11, SEEK_SET);
+    for (size_t y = 0; y < 8; y++) {
+      for (size_t x = 0; x < 8; x++) {
+        data[y][x] = fgetc(fichier);
+      }
+}
+fclose(fichier);
+return data;
 }
 
 
 int32_t *recuper_entete(const char* file_pgm)
 {
-  FILE* fichier = fopen(file_pgm, "r+");
-  int32_t *vect = malloc(11*sizeof(int32_t));
-  char *vect2 = malloc(11*sizeof(char));
-  int compteur = 0;
-  int nbr=0;
-  while (compteur < 11) {
-    *(vect + compteur) = fgetc(fichier);
-    compteur++;
-  }
-  /*
-  if (*(vect2)+*(vect2+1) == "5035")
-  {
-      current = (vect2+4)
-      while !(*current = "20")
-      {
-        nbr = 10*nbr+
-      }
-  }
-  */
-  fclose(fichier);
-  return vect;
+    FILE* fichier = fopen(file_pgm, "r+");
+    int32_t *vect = malloc(11*sizeof(int32_t));
+    char *vect2 = malloc(11*sizeof(char));
+    int compteur = 0;
+    int nbr=0;
+    while (compteur < 11)
+    {
+      *(vect + compteur) = fgetc(fichier);
+      compteur++;
+    }
+    /*
+    if (*(vect2)+*(vect2+1) == "5035")
+    {
+        current = (vect2+4)
+        while !(*current = "20")
+        {
+          nbr = 10*nbr+
+        }
+    }
+    */
+    fclose(fichier);
+    return vect;
 }
 
 
@@ -96,8 +99,9 @@ int main(int argc, char const *argv[])
     stream = jpeg_get_bitstream(image);
     
     /*DCT + ZigZag*/
-  
-  
+    int32_t **ptr_tab_data; 
+    int8_t taille = 8;
+    ptr_tab_data = operations_dct_quantification_puis_zig_zag(data); 
     /* Huffman  */
     gestion_compression(stream, ptr_tab_data, taille);
     
@@ -107,5 +111,5 @@ int main(int argc, char const *argv[])
     bitstream_flush(stream);
     bitstream_destroy(stream);
     
-  return 0;
+    return 0;
 }
