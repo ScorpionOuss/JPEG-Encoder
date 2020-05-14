@@ -50,11 +50,13 @@ void gestion_compression(struct bitstream* stream, int32_t* ptr_tab, int8_t tail
     ptr_nbr_bit = malloc(sizeof(uint8_t));
     uint8_t sample_type = 0;
     uint8_t color_component = 1; /* attention */
+    void *pointeur_sur_htable;
+    uint32_t suite_bit_premier;
     pointeur_sur_htable = huffman_table_build(htables_nb_symb_per_lengths[sample_type][color_component], htables_symbols[sample_type][color_component], htables_nb_symbols[sample_type][color_component]);
     suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, *ptr_tab, ptr_nbr_bit);
     bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
     /* Codage des AC*/
-    RLE(stream, ptr_tab, taille_tab)
+    RLE(stream, ptr_tab, taille_tab);
 }
 
 
