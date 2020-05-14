@@ -78,9 +78,9 @@ float *zigZag(float tab[8][8])
         x +=1;
         parcoursCroissant(tab, vecteurRes, x, 0, indiceCour);
     }
-    printf("la valeur de l'adresse est:%d", *indiceCour);
+    //printf("la valeur de l'adresse est:%d", *indiceCour);
     parcoursDecroissant(tab, vecteurRes,7, 0, indiceCour);
-    printf("la valeur de l'adresse est:%d", *indiceCour);
+    //printf("la valeur de l'adresse est:%d", *indiceCour);
     for (j=0; j<3; j++)
     {
         y += 1;
@@ -88,12 +88,13 @@ float *zigZag(float tab[8][8])
         y += 1;
         parcoursDecroissant(tab, vecteurRes, y, 7, indiceCour);
     }
-    printf("la valeur de l'adresse est:%d", *indiceCour);
+    //printf("la valeur de l'adresse est:%d", *indiceCour);
 
     vecteurRes[63] = tab[7][7];
     return vecteurRes;
 }
 
+/*
 float tab[8][8] = {{0,1,5,6,14,15,27,28},{2,4,7,13,16,26,29,42},{3,8,12,17,25,30,41,43},{9,11,18,24,31,40,44,54},{10,19,23,32,39,45,53,55},{20,22,33,38,46,52,56,61},{21,34,37,47,51,57,60,62},{35,36,49,50,58,59,63,64}};
 void main(void)
 {
@@ -105,4 +106,4 @@ void main(void)
         printf("valeur %f: \n", vecteurRes[i]);
     }
 }
-
+*/ 
