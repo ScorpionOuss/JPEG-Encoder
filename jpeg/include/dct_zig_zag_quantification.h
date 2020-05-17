@@ -6,7 +6,7 @@
 
 
 
-extern int32_t operations_dct_quantification_puis_zig_zag(int data[8][8]);
+extern int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data);
 
-extern float transformation(int s[8][8], int i, int j)
+
 #endif

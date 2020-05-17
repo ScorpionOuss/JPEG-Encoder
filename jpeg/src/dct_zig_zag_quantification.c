@@ -2,16 +2,17 @@
 #include <stdio.h>
 #include <math.h>
 #include <qtables.h>
+
 #define pi 3.1415927
 
-void parcoursCroissant(float tab[8][8], float *vecteur, int x, int y, int *adresse)
+void parcoursCroissant(float** tab, float *vecteur, int x, int y, int *adresse)
 {
     if (y==0)
     {
         int absc=x, ordo=0;
         while (absc >= 0)
         {
-            vecteur[*adresse] = tab[absc][ordo];
+            vecteur[*adresse] = *(*(tab+absc)+ordo);
             absc -=1;
             ordo += 1;
             //printf("abscisse %d, ordonnée %d\n", absc, ordo);
@@ -23,7 +24,7 @@ void parcoursCroissant(float tab[8][8], float *vecteur, int x, int y, int *adres
         int absc=7, ordo=x;
         while (absc >= x)
         {
-        vecteur[*adresse] = tab[absc][ordo];
+        vecteur[*adresse] = *(*(tab+absc)+ordo);
         absc -=1;
         ordo += 1;
         *adresse += 1;
@@ -31,14 +32,14 @@ void parcoursCroissant(float tab[8][8], float *vecteur, int x, int y, int *adres
     }
 }
 
-void parcoursDecroissant(float tab[8][8], float *vecteur, int x, int y, int *adresse)
+void parcoursDecroissant(float** tab, float *vecteur, int x, int y, int *adresse)
 {
     if (y==0)
     {
         int absc=0, ordo=x;
         while (ordo >= 0)
         {
-            vecteur[*adresse] = tab[absc][ordo];
+        vecteur[*adresse] = *(*(tab+absc)+ordo);
             ordo -= 1;
             absc += 1;
             *adresse += 1;
@@ -49,7 +50,7 @@ void parcoursDecroissant(float tab[8][8], float *vecteur, int x, int y, int *adr
         int absc=x, ordo=7;
         while (ordo >= x)
         {
-            vecteur[*adresse] = tab[absc][ordo];
+        vecteur[*adresse] = *(*(tab+absc)+ordo);
             ordo -= 1;
             absc += 1;
             *adresse += 1;
@@ -61,7 +62,7 @@ void parcoursDecroissant(float tab[8][8], float *vecteur, int x, int y, int *adr
 
 
 
-float *zigZag(float tab[8][8])
+float *zigZag(float** tab)
 {
     int x = 0;
     int y = 0;
@@ -70,8 +71,7 @@ float *zigZag(float tab[8][8])
     int *indiceCour = malloc(sizeof(int));
     float *vecteurRes = malloc(64*sizeof(float));
     *indiceCour = 1;
-    vecteurRes[0] = tab[0][0];
-
+    vecteurRes[0] = *(*(tab));
     for (i=0; i<3; i++)
     {
         x += 1;
@@ -79,9 +79,7 @@ float *zigZag(float tab[8][8])
         x +=1;
         parcoursCroissant(tab, vecteurRes, x, 0, indiceCour);
     }
-    printf("la valeur de l'adresse est:%d", *indiceCour);
     parcoursDecroissant(tab, vecteurRes,7, 0, indiceCour);
-    printf("la valeur de l'adresse est:%d", *indiceCour);
     for (j=0; j<3; j++)
     {
         y += 1;
@@ -89,15 +87,14 @@ float *zigZag(float tab[8][8])
         y += 1;
         parcoursDecroissant(tab, vecteurRes, y, 7, indiceCour);
     }
-    printf("la valeur de l'adresse est:%d", *indiceCour);
-
-    vecteurRes[63] = tab[7][7];
+    vecteurRes[63] = *(*(tab+7)+7);
+    affichage(vecteurRes);
     return vecteurRes;
 }
 
 
 
-float fonctionC(int indice)
+float fonctionC(int32_t indice)
 {
     if (indice == 0)
     {
@@ -106,7 +103,7 @@ float fonctionC(int indice)
     return 1;
 }
 
-float transformation(int s[8][8], int i, int j)
+float transformation(int32_t** s, int i, int j)
 {
     int x;
     int y;
@@ -115,44 +112,83 @@ float transformation(int s[8][8], int i, int j)
     {
         for (y=0; y<8; y++)
         {
-            somme += s[x][y] * cos((2 * x + 1) * i *(pi/2 * 8)) * cos((2 * y + 1) * j * pi/(2 *8));
+            somme += (*(*(s+x)+y)-128) * cos((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cos((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
-    return (2/8)*fonctionC(i)*fonctionC(j)*somme;
+    printf(" resultat de transformation: %f \n", (0.25)*fonctionC(i)*fonctionC(j)*somme);
+    return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
 
 int t[8][8] = {0};
 
-float **dtc(int t[8][8])
+int32_t** dtc(int32_t** t)
 {
-    float **nouveau = malloc(8*sizeof(float*));
+    printf(" %d \n", *(*(t+1)+2));
+    float** nouveau = malloc(8*sizeof(int32_t*));
+    for (size_t i = 0; i < 8; i++) {
+      nouveau[i] = malloc(8*sizeof(int32_t));
+    }
     int i;
     int j;
     for (i=0; i < 8; i++)
     {
-        nouveau[i] = malloc(8*sizeof(float));
         for (j=0; j < 8; j++)
         {
-            nouveau[i][j] = transformation(t, i, j);
+            nouveau[i][j] = floor(transformation(t, i, j)+0.5);
         }
     }
-    return nouveau;
-}
-int32_t **quantification(int t[64])
-{
-    float **nouveau = malloc(8*sizeof(float*));
-    int i;
-    int j;
-    for (j=0; j < 64; j++)
-    {
-        nouveau[i][j] = floor(t[i]/quantification_table_Y[i]);
-    }
+    printf(" %f \n", nouveau[0][1]);
+    affichage_dct(nouveau);
     return nouveau;
 }
 
-int32_t **operations_dct_quantification_puis_zig_zag(int data[8][8])
+int32_t* quantification(float* t)
 {
+    int32_t *nouveau = malloc(64*sizeof(int*));
+    int32_t j;
+    for (j=0; j < 64; j++)
+    {
+        nouveau[j] = (int32_t) (*(t+j)/(quantification_table_Y[j]));
+    }
+    affichage_quantification(nouveau);
+    return nouveau;
+}
+void affichage(float* t)
+{
+    for (int j=0; j < 64; j++)
+    {
+        printf("%f ->", *(t+j));
+    }
+    printf("\n");
+    printf("\n");
+    printf("\n");
+}
+void affichage_quantification(int* t)
+{
+    for (int j=0; j < 64; j++)
+    {
+        printf("%d ->", *(t+j));
+    }
+    printf("\n");
+}
+
+void affichage_dct(float** t)
+{
+    for (int j=0; j < 8; j++)
+    {
+    for (int i=0; i < 8; i++)
+    {
+       printf("%f ->", *(*(t+i)+j));
+    }
+    printf("\n");
+    }
+    printf("\n");
+}
+int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data)
+{
+    printf(" %d \n", *((*data+1)+2));
+    //return quantification(zigZag(dtc(data)));
     return quantification(zigZag(dtc(data)));
 }
 /*

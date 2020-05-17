@@ -6,17 +6,17 @@
 #include "htables.h"
 #include  "bitstream.h"
 /*#include "magnitude.h"*/
-void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab)
+void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, struct jpeg* image)
 {
-	void *pointeur_sur_htable;
+	struct huff_table *pointeur_sur_htable;
     uint8_t i=1;
 	uint8_t nbr_zero_prec = 0, suite_bit_premier, suite_bit_suivant;
     uint8_t value = 7;
 	uint8_t *ptr_nbr_bit;
 	ptr_nbr_bit = malloc(sizeof(uint8_t));
     uint8_t sample_type = 1;
-    uint8_t color_component = 2; /* attention */
-    pointeur_sur_htable = huffman_table_build(htables_nb_symb_per_lengths[sample_type][color_component], htables_symbols[sample_type][color_component], htables_nb_symbols[sample_type][color_component]);
+    uint8_t color_component = 0; /* attention */
+    pointeur_sur_htable = jpeg_get_huffman_table(image, 1,0);
     for (int i = 1; i < taille_tab; i++)
     {
     if (*(ptr_sur_tab + i) == 0)
@@ -27,15 +27,12 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab)
     {
     value = 16*nbr_zero_prec + calc_magnitude(*(ptr_sur_tab + i));
     suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
-    printf("1. on note %d sur %d bits \n", value, *ptr_nbr_bit);
     bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
     suite_bit_suivant = num_magnitude(*(ptr_sur_tab+i),calc_magnitude(*(ptr_sur_tab+i)));
-    printf("2. on note %d, sur %d bits \n", suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant));
     bitstream_write_bits(stream, suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant), false);
     nbr_zero_prec=0; 
     }
     }
-   
 
    /*
     entier_huff = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
@@ -43,34 +40,70 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab)
 }
 
 
-void gestion_compression(struct bitstream* stream, int32_t* ptr_tab, int8_t taille_tab)
+void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab)
 {
     /* Codage de DC*/
-	uint8_t *ptr_nbr_bit;
+    jpeg_write_header(image);
+    printf("\n %d \n \n \n",*ptr_tab);
+	uint8_t* ptr_nbr_bit;
+    struct bitstream* stream;
+    stream = jpeg_get_bitstream(image);
     ptr_nbr_bit = malloc(sizeof(uint8_t));
     uint8_t sample_type = 0;
-    uint8_t color_component = 1; /* attention */
-    void *pointeur_sur_htable;
+    uint8_t color_component = 0; /* attention */
+    struct huff_table* pointeur_sur_htable;
     uint32_t suite_bit_premier;
-    pointeur_sur_htable = huffman_table_build(htables_nb_symb_per_lengths[sample_type][color_component], htables_symbols[sample_type][color_component], htables_nb_symbols[sample_type][color_component]);
-    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, *ptr_tab, ptr_nbr_bit);
-    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
-    /* Codage des AC*/
-    RLE(stream, ptr_tab, taille_tab);
+    uint32_t suite_bit_suivant;
+    uint8_t value = 7;
+    //bitstream_write_bits(stream,55551, 16, true);
+    pointeur_sur_htable = jpeg_get_huffman_table(image, 0,0);
+    value = calc_magnitude(*ptr_tab);
+    printf(" %d \n",value);
+    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
+    printf(" %d \n", suite_bit_premier);
+    suite_bit_suivant = num_magnitude(*ptr_tab, calc_magnitude(*ptr_tab));
+    printf(" %d \n", suite_bit_suivant);
+    
+    
+    bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
+    bitstream_write_bits(stream, suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant), false);
+    //bitstream_write_bits(stream, suite_bit_suivant+2^(nbr_bit_binaire(suite_bit_suivant))*suite_bit_premier,*ptr_nbr_bit+ nbr_bit_binaire(suite_bit_suivant), false);
+    //ecrire_dans_l_autre_sens(stream, suite_bit_premier+2^(*ptr_nbr_bit)*suite_bit_suivant,*ptr_nbr_bit+ nbr_bit_binaire(suite_bit_suivant));
+   /* Codage des AC*/
+   RLE(stream, ptr_tab, taille_tab, image);
+   
+   //bitstream_write_bits(stream, 0, 8, true);
+   //bitstream_flush(stream);
+   jpeg_write_footer(image);
+   jpeg_destroy(image);
+//bitstream_write_bits(stream, 0, 8, false);
 }
-
+void ecrire_dans_l_autre_sens(struct bitstream* stream,int nombre, uint8_t nombre_de_bit)
+{
+    int nbr_de_bit_restant = nombre_de_bit;
+    int nbr = nombre;
+    while (!(nbr == 1))
+    {
+        bitstream_write_bits(stream, nbr % 2, 1, false);
+        nbr = nbr / 2;
+        nbr_de_bit_restant--;
+    }
+    bitstream_write_bits(stream, 1, 1, false);
+    bitstream_write_bits(stream, 0, nbr_de_bit_restant, false);
+    
+}
 
 int nbr_bit_binaire(int nbr)
 {
-    if (nbr == 1)
+    if ((nbr == 1)||(nbr==0))
     {
     return (1);
     }
     else
     {
     int t = 1;
-    int i = 1;
-    while (t<nbr)
+    int i = 0;
+    while (t<=nbr)
     {
         t = t*2;
         i++;
