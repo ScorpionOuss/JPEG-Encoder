@@ -135,7 +135,7 @@ int32_t** dtc(int32_t** t)
     {
         for (j=0; j < 8; j++)
         {
-            nouveau[i][j] = floor(transformation(t, i, j)+0.5);
+            nouveau[i][j] = (int32_t) (transformation(t, i, j));
         }
     }
     printf(" %f \n", nouveau[0][1]);

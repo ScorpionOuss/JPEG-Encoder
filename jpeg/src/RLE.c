@@ -10,7 +10,8 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 {
 	struct huff_table *pointeur_sur_htable;
     uint8_t i=1;
-	uint8_t nbr_zero_prec = 0, suite_bit_premier, suite_bit_suivant;
+	uint8_t nbr_zero_prec = 0; 
+    uint32_t suite_bit_premier, suite_bit_suivant;
     uint8_t value = 7;
 	uint8_t *ptr_nbr_bit;
 	ptr_nbr_bit = malloc(sizeof(uint8_t));
@@ -26,14 +27,17 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     else
     {
     value = 16*nbr_zero_prec + calc_magnitude(*(ptr_sur_tab + i));
+    printf("\n value : %d ",value);
     suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
+    printf("dans la table de huffman : %d noté sur %d bits", suite_bit_premier, *ptr_nbr_bit);
     bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
     suite_bit_suivant = num_magnitude(*(ptr_sur_tab+i),calc_magnitude(*(ptr_sur_tab+i)));
-    bitstream_write_bits(stream, suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant), false);
+    bitstream_write_bits(stream, suite_bit_suivant, calc_magnitude(*(ptr_sur_tab+i)), false);
     nbr_zero_prec=0; 
     }
     }
 
+    //bitstream_flush(stream);
    /*
     entier_huff = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
 	printf("%d", entier_huff);*/
@@ -44,7 +48,6 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
 {
     /* Codage de DC*/
     jpeg_write_header(image);
-    printf("\n %d \n \n \n",*ptr_tab);
 	uint8_t* ptr_nbr_bit;
     struct bitstream* stream;
     stream = jpeg_get_bitstream(image);
@@ -72,7 +75,7 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    /* Codage des AC*/
    RLE(stream, ptr_tab, taille_tab, image);
    
-   //bitstream_write_bits(stream, 0, 8, true);
+   bitstream_write_bits(stream, 10, 4, true);
    //bitstream_flush(stream);
    jpeg_write_footer(image);
    jpeg_destroy(image);
