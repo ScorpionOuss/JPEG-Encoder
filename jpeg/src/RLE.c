@@ -27,9 +27,7 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     else
     {
     value = 16*nbr_zero_prec + calc_magnitude(*(ptr_sur_tab + i));
-    printf("\n value : %d ",value);
     suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
-    printf("dans la table de huffman : %d noté sur %d bits", suite_bit_premier, *ptr_nbr_bit);
     bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
     suite_bit_suivant = num_magnitude(*(ptr_sur_tab+i),calc_magnitude(*(ptr_sur_tab+i)));
     bitstream_write_bits(stream, suite_bit_suivant, calc_magnitude(*(ptr_sur_tab+i)), false);
@@ -74,7 +72,6 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
     //ecrire_dans_l_autre_sens(stream, suite_bit_premier+2^(*ptr_nbr_bit)*suite_bit_suivant,*ptr_nbr_bit+ nbr_bit_binaire(suite_bit_suivant));
    /* Codage des AC*/
    RLE(stream, ptr_tab, taille_tab, image);
-   
    bitstream_write_bits(stream, 10, 4, true);
    //bitstream_flush(stream);
    jpeg_write_footer(image);
