@@ -40,7 +40,7 @@ int32_t *recuper_entete(const char* file_pgm)
     str[2] = fgetc(fichier);
     if (str[0]==5*16 && str[1]==3*16+5 && str[2]==10)
     {
-    printf("P5 OK");
+    printf("P5 OK \n");
     current = fgetc(fichier);
     while (!(current == 32))
     {
@@ -119,6 +119,62 @@ struct jpeg *creation_jpeg(int32_t *parametres)
 
     return image;
 }
+
+
+int32_t **bonne_taille(int32_t **data, int dimensions[2])
+//Transforme l'image de sorte que ses dimensions soient un multiple de 8
+{
+    // On calcule les bonnes dimensions
+    int bonne_abscisse = dimensions[0];
+    if (dimensions[0] % 8 != 0)
+    {
+    bonne_abscisse += 8 - dimensions[0] % 8;
+    }
+    
+    int bonne_ordonnee = dimensions[1];
+    if (dimensions[1] % 8 != 0)
+    {
+    bonne_ordonnee += (8 - dimensions[1] % 8);
+    }
+        
+    // On créé un nouveau tableau data aux bonnes dimensions
+    int32_t** data_new = malloc(bonne_ordonnee*sizeof(int32_t*));
+    for (size_t i = 0; i < bonne_ordonnee; i++) {
+      
+      data_new[i] = malloc(bonne_abscisse*sizeof(int32_t));
+    }
+    
+    
+    // On le remplit avec les anciennes valeurs
+    for (size_t y = 0; y < dimensions[1]; y++) {
+      for (size_t x = 0; x < dimensions[0]; x++) {
+        data_new[y][x] = data[y][x];
+      }
+    }
+        
+    // On met les nouvelles valeurs
+    // En bas d'abord
+     for (size_t y = dimensions[1]; y < bonne_ordonnee; y++) {
+        for (size_t x = 0; x < dimensions[0]; x++) {
+            data_new[y][x] = data[dimensions[1]-1][x];
+        }
+    }
+    // Puis à droite
+     for (size_t y = 0; y < bonne_ordonnee; y++) {
+        for (size_t x = dimensions[0]; x < bonne_abscisse; x++) {
+            data_new[y][x] = data[y][dimensions[0] -1];
+        }
+    }
+
+    
+    return data_new;
+
+}
+
+
+
+
+
 int32_t ***zigzag_bloc(int32_t** ptr_sur_tab, int largeur, int hauteur)
 {
 
@@ -152,22 +208,29 @@ int main(int argc, char const *argv[])
 {
     int32_t* entete = NULL; // entête du fichier pgm
     int32_t** data = NULL;   // le contenu, les pixels
+    int32_t** data_new = NULL;
     struct jpeg *image;
     struct bitstream *stream;
     /* récupération de l'image et création des données */
     entete = recuper_entete(argv[1]);
     data = recuper_data(argv[1], entete);
     image = creation_jpeg(entete);
-        
+    int32_t dim[2] = {585, 487};
+    data_new = bonne_taille(data, dim);
+    printf("%i \n", data_new[0][589]);
+    printf("%i \n", data_new[0][585]);
+    printf("%i \n", data_new[0][586]);
+    /*
     stream = jpeg_get_bitstream(image);
-    /*DCT + ZigZagi*/
+    //DCT + ZigZagi
     int32_t* ptr_tab_data; 
     int8_t taille = 64;
     ptr_tab_data = operations_dct_quantification_puis_zig_zag(data); 
 
-    /* Huffman  */
+    // Huffman
     gestion_compression(image, ptr_tab_data, taille);
     
-    /* fin*/
+    // fin
+    */
     return 0;
 }
