@@ -60,8 +60,6 @@ void parcoursDecroissant(float** tab, float *vecteur, int x, int y, int *adresse
 
 
 
-
-
 float *zigZag(float** tab)
 {
     int x = 0;

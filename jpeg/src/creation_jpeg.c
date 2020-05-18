@@ -9,16 +9,16 @@
 
 #define pi 3.1415927
 /* partie recupération des datas */
-int32_t** recuper_data(const char* file_pgm)
+int32_t** recuper_data(const char* file_pgm, int32_t* entete)
 {
     FILE* fichier = fopen(file_pgm, "r+");
-    int32_t** data = malloc(8*sizeof(int32_t*));
-    for (size_t i = 0; i < 8; i++) {
-      data[i] = malloc(8*sizeof(int32_t));
+    int32_t** data = malloc(*entete*sizeof(int32_t*));
+    for (size_t i = 0; i < *(entete); i++) {
+      data[i] = malloc(*(entete+1)*sizeof(int32_t));
     }
     fseek(fichier, 11, SEEK_SET);
-    for (size_t y = 0; y < 8; y++) {
-      for (size_t x = 0; x < 8; x++) {
+    for (size_t y = 0; y < *entete; y++) {
+      for (size_t x = 0; x < *(entete+1); x++) {
         data[y][x] = fgetc(fichier);
       }
 }
@@ -30,15 +30,47 @@ return data;
 int32_t *recuper_entete(const char* file_pgm)
 {
     FILE* fichier = fopen(file_pgm, "r+");
-    int32_t *vect = malloc(11*sizeof(int32_t));
-    char *vect2 = malloc(11*sizeof(char));
+    int32_t *parametre = malloc(11*sizeof(int32_t));
     int compteur = 0;
     int nbr=0;
-    while (compteur < 11)
+    int current = 0;
+    int str[4];
+    str[0] = fgetc(fichier);
+    str[1] = fgetc(fichier);
+    str[2] = fgetc(fichier);
+    if (str[0]==5*16 && str[1]==3*16+5 && str[2]==10)
     {
-      *(vect + compteur) = fgetc(fichier);
-      compteur++;
+    printf("P5 OK");
+    current = fgetc(fichier);
+    while (!(current == 32))
+    {
+        nbr = nbr*10+current-3*16;
+        current = fgetc(fichier);
     }
+    *(parametre+compteur) = nbr;
+    nbr = 0;
+    compteur++;
+    current = fgetc(fichier);
+    while (!(current == 10))
+    {
+        nbr = nbr*10+current-3*16;
+        current = fgetc(fichier);
+    }
+    *(parametre+compteur) = nbr;
+    nbr = 0;
+    compteur++;
+    current = fgetc(fichier);
+    while (!(current == 10))
+    {
+        nbr = nbr*10+current-3*16;
+        current = fgetc(fichier);
+    }
+    *(parametre+compteur) = nbr;
+    nbr = 0;
+    compteur++;
+    }
+    fclose(fichier);
+    return parametre;
     /*
     if (*(vect2)+*(vect2+1) == "5035")
     {
@@ -49,20 +81,18 @@ int32_t *recuper_entete(const char* file_pgm)
         }
     }
     */
-    fclose(fichier);
-    return vect;
 }
 
 
-struct jpeg *creation_jpeg(int32_t parametres[2])
+struct jpeg *creation_jpeg(int32_t *parametres)
 //fonction qui cree un fichier jpeg : parametres est le tableau qui contient les infos de recup_data
 {
     struct jpeg *image = jpeg_create();
     //Premiere ligne mystere
     jpeg_set_ppm_filename(image, "chabanas.ppm");
     jpeg_set_jpeg_filename(image, "resultat.jpg");
-    jpeg_set_image_width(image, 8);
-    jpeg_set_image_height(image, 8);
+    jpeg_set_image_width(image, *(parametres));
+    jpeg_set_image_height(image, *(parametres+1));
     jpeg_set_nb_components(image, 1);
 
     int cc = 0;
@@ -89,17 +119,45 @@ struct jpeg *creation_jpeg(int32_t parametres[2])
 
     return image;
 }
+int32_t ***zigzag_bloc(int32_t** ptr_sur_tab, int largeur, int hauteur)
+{
+
+    int32_t **ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(int32_t*));
+    for (size_t i3 = 0; i3 < 8; i3++) {
+      ptr_sur_tab[i3] = malloc(((int) largeur/8)*sizeof(int32_t));
+    } 
+    for (int i = 0; i<hauteur;i=i+8)
+    {
+    for (int j=0; j<largeur; i=i+8)
+    {
+    int32_t** data = malloc(8*sizeof(int32_t*));
+    for (size_t i3 = 0; i3 < 8; i3++) {
+      data[i3] = malloc(8*sizeof(int32_t));
+    }
+    for (int i1 = 0; i1<8; i1++)
+    {
+    for (int j1 = 0; j1<8; j1++)
+    {
+        data[i+i1][j+j1] = ptr_sur_tab[i+i1][j+j1];
+    }
+    }
+    ptr_sur_tab_retour[i][j] = data; 
+    }
+    }
+
+    int32_t** ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/8 )*((int) hauteur / 8)* sizeof(int32_t*));
+}
+
 int main(int argc, char const *argv[])
 {
     int32_t* entete = NULL; // entête du fichier pgm
     int32_t** data = NULL;   // le contenu, les pixels
-    int32_t* tab[2]= {8, 8};
     struct jpeg *image;
     struct bitstream *stream;
     /* récupération de l'image et création des données */
     entete = recuper_entete(argv[1]);
-    data = recuper_data(argv[1]);
-    image = creation_jpeg(tab);
+    data = recuper_data(argv[1], entete);
+    image = creation_jpeg(entete);
         
     stream = jpeg_get_bitstream(image);
     /*DCT + ZigZagi*/

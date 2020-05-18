@@ -98,7 +98,6 @@ int32_t puissance(int32_t a, int32_t b)
     }
 }
 
-
 int32_t calc_magnitude(int32_t entier)
 // renvoie la magnitude d'un entier
 {
