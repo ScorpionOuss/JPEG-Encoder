@@ -115,7 +115,6 @@ float transformation(int32_t** s, int i, int j)
             somme += (*(*(s+x)+y)-128) * cos((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cos((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
-    printf(" resultat de transformation: %f \n", (0.25)*fonctionC(i)*fonctionC(j)*somme);
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
@@ -138,7 +137,6 @@ int32_t** dtc(int32_t** t)
             nouveau[i][j] = (int32_t) (transformation(t, i, j));
         }
     }
-    printf(" %f \n", nouveau[0][1]);
     affichage_dct(nouveau);
     return nouveau;
 }
@@ -156,6 +154,7 @@ int32_t* quantification(float* t)
 }
 void affichage(float* t)
 {
+    printf("affichage zigZag: \n");
     for (int j=0; j < 64; j++)
     {
         printf("%f ->", *(t+j));
@@ -164,8 +163,9 @@ void affichage(float* t)
     printf("\n");
     printf("\n");
 }
-void affichage_quantification(int* t)
+void affichage_quantification(int32_t* t)
 {
+    printf("Affichage quantification \n");
     for (int j=0; j < 64; j++)
     {
         printf("%d ->", *(t+j));
@@ -175,6 +175,7 @@ void affichage_quantification(int* t)
 
 void affichage_dct(float** t)
 {
+    printf(" Affichage DCT: \n");
     for (int j=0; j < 8; j++)
     {
     for (int i=0; i < 8; i++)
@@ -187,8 +188,6 @@ void affichage_dct(float** t)
 }
 int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data)
 {
-    printf(" %d \n", *((*data+1)+2));
-    //return quantification(zigZag(dtc(data)));
     return quantification(zigZag(dtc(data)));
 }
 /*

@@ -59,14 +59,12 @@ struct jpeg *creation_jpeg(int32_t parametres[2])
 {
     struct jpeg *image = jpeg_create();
     //Premiere ligne mystere
-    printf("hello");
     jpeg_set_ppm_filename(image, "chabanas.ppm");
     jpeg_set_jpeg_filename(image, "resultat.jpg");
     jpeg_set_image_width(image, 8);
     jpeg_set_image_height(image, 8);
     jpeg_set_nb_components(image, 1);
 
-    printf("hello");
     int cc = 0;
     for (int acdc=0; acdc<2;acdc++)
     {
@@ -93,24 +91,17 @@ struct jpeg *creation_jpeg(int32_t parametres[2])
 }
 int main(int argc, char const *argv[])
 {
-
-
     int32_t* entete = NULL; // entête du fichier pgm
     int32_t** data = NULL;   // le contenu, les pixels
     int32_t* tab[2]= {8, 8};
     struct jpeg *image;
     struct bitstream *stream;
-
+    /* récupération de l'image et création des données */
     entete = recuper_entete(argv[1]);
     data = recuper_data(argv[1]);
     image = creation_jpeg(tab);
         
     stream = jpeg_get_bitstream(image);
-    printf(" %d \n", data[0][0]);
-    printf(" %d \n", data[0][1]);
-    printf(" %d \n", data[0][2]);
-    printf(" %d \n", data[1][2]);
-    printf(" %d \n", data[2][2]);
     /*DCT + ZigZagi*/
     int32_t* ptr_tab_data; 
     int8_t taille = 64;
@@ -118,7 +109,6 @@ int main(int argc, char const *argv[])
 
     /* Huffman  */
     gestion_compression(image, ptr_tab_data, taille);
-    //gestion_compression(stream,  
     
     /* fin*/
     return 0;

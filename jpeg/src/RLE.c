@@ -35,10 +35,6 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     }
     }
 
-    //bitstream_flush(stream);
-   /*
-    entier_huff = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
-	printf("%d", entier_huff);*/
 }
 
 
@@ -59,38 +55,18 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
     //bitstream_write_bits(stream,55551, 16, true);
     pointeur_sur_htable = jpeg_get_huffman_table(image, 0,0);
     value = calc_magnitude(*ptr_tab);
-    printf(" %d \n",value);
     suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
-    printf(" %d \n", suite_bit_premier);
     suite_bit_suivant = num_magnitude(*ptr_tab, calc_magnitude(*ptr_tab));
-    printf(" %d \n", suite_bit_suivant);
     
     
     bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
     bitstream_write_bits(stream, suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant), false);
-    //bitstream_write_bits(stream, suite_bit_suivant+2^(nbr_bit_binaire(suite_bit_suivant))*suite_bit_premier,*ptr_nbr_bit+ nbr_bit_binaire(suite_bit_suivant), false);
-    //ecrire_dans_l_autre_sens(stream, suite_bit_premier+2^(*ptr_nbr_bit)*suite_bit_suivant,*ptr_nbr_bit+ nbr_bit_binaire(suite_bit_suivant));
    /* Codage des AC*/
    RLE(stream, ptr_tab, taille_tab, image);
    bitstream_write_bits(stream, 10, 4, true);
-   //bitstream_flush(stream);
+   /* Ecriture fin de l'image */
    jpeg_write_footer(image);
    jpeg_destroy(image);
-//bitstream_write_bits(stream, 0, 8, false);
-}
-void ecrire_dans_l_autre_sens(struct bitstream* stream,int nombre, uint8_t nombre_de_bit)
-{
-    int nbr_de_bit_restant = nombre_de_bit;
-    int nbr = nombre;
-    while (!(nbr == 1))
-    {
-        bitstream_write_bits(stream, nbr % 2, 1, false);
-        nbr = nbr / 2;
-        nbr_de_bit_restant--;
-    }
-    bitstream_write_bits(stream, 1, 1, false);
-    bitstream_write_bits(stream, 0, nbr_de_bit_restant, false);
-    
 }
 
 int nbr_bit_binaire(int nbr)
