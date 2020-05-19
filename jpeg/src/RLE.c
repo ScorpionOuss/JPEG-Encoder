@@ -22,7 +22,13 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     {
     if (*(ptr_sur_tab + i) == 0)
     {
-    nbr_zero_prec++; 
+    nbr_zero_prec++;
+    if (nbr_zero_prec == 16)
+    {
+    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,-16, ptr_nbr_bit);
+    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
+    nbr_zero_prec = 0;
+    }
     }
     else
     {
@@ -34,7 +40,11 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     nbr_zero_prec=0; 
     }
     }
-
+    if (!(nbr_zero_prec==0))
+    {
+    
+    bitstream_write_bits(stream, 10, 4, true);
+    }
 }
 
 
@@ -62,7 +72,6 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    bitstream_write_bits(stream, suite_bit_suivant, value, false);
    /* Codage des AC*/
    RLE(stream, ptr_tab, taille_tab, image);
-   bitstream_write_bits(stream, 10, 4, true);
    /* Ecriture fin de l'image */
 }
 

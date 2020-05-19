@@ -113,10 +113,10 @@ float transformation(int32_t** s, int i, int j)
             somme += (*(*(s+x)+y)-128) * cosf((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cosf((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
-    if (i == 5)
-    {
-    printf("%f \n", (0.25)*fonctionC(i)*fonctionC(j)*somme);
-    }
+
+    
+    printf("Aux coord i=%i j=%i, %f \n", i, j, (0.25)*fonctionC(i)*fonctionC(j)*somme);
+    
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
@@ -136,7 +136,17 @@ int** dtc(int32_t** t)
     {
         for (j=0; j < 8; j++)
         {
-            nouveau[i][j] = (int) (transformation(t, i, j));
+            int entier = (int) transformation(t, i, j);
+            float flottant = transformation(t, i, j);
+            if (flottant > 0 && (int) (flottant + 0.0001) != entier){
+                nouveau[i][j] = entier + 1;
+                printf("ICI C EST SPECIAL VPLUS !!!!!, %f, %f, %i", flottant, flottant + 0.0001, entier);
+                printf("Nouvelle valeur %i", nouveau[i][j]);
+            }
+            else
+                {
+                nouveau[i][j] = entier;
+                }
         }
     }
     affichage_dct(nouveau);
