@@ -13,50 +13,50 @@ struct Entete {
     int32_t largeur;     // largeur de l'image
 };
 
-//
-// // récupération des pixel des fichiers pgm dans une matrice de taille "longueurXlargeur"
-// int32_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longueur)
-// {
-//   FILE* fichier = fopen(file_pgm, "r+");
-//   int32_t** data = malloc(longueur*sizeof(int32_t*));
-//   for (size_t i = 0; i < longueur; i++) {
-//     data[i] = malloc(largeur*sizeof(int32_t));
-//   }
-//   fseek(fichier, 11, SEEK_SET);
-//   for (size_t y = 0; y < longueur; y++) {
-//     for (size_t x = 0; x < largeur; x++) {
-//       data[y][x] = fgetc(fichier);
-//     }
-//   }
-//   fclose(fichier);
-//   return data;
-// }
-//
-// // récupération d'un tableau de trois matrices des couleurs de taille "longueurXlargeur"
-// int32_t ***recuper_data_couleur(const char* file_pgm,uint32_t largeur,uint32_t longueur)
-// {
-//   FILE* fichier = fopen(file_pgm, "r+");
-//   int32_t*** data = malloc(3*sizeof(int32_t**)); // 3 pointeurs vers les trois matrices des différentes couleurs
-//   for (size_t i = 0; i < 3; i++) {
-//     data[i] = malloc(longueur*sizeof(int32_t*));
-//     for (size_t j = 0; j < longueur; j++) {
-//       data[i][j] = malloc(largeur*sizeof(int32_t));
-//     }
-//   }
-//
-//
-//   fseek(fichier, 11, SEEK_SET);// on enleve l'entete 11 octets
-//   // on parcours les données
-//   for (size_t y = 0; y < longueur; y++) {
-//     for (size_t x = 0; x < largeur; x++) {
-//       for (size_t i = 0; i < 3; i++) {
-//         data[i][y][x] = fgetc(fichier);
-//       }
-//     }
-//   }
-//   fclose(fichier);
-//   return data;
-// }
+
+// récupération des pixel des fichiers pgm dans une matrice de taille "longueurXlargeur"
+int32_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longueur)
+{
+  FILE* fichier = fopen(file_pgm, "r+");
+  int32_t** data = malloc(longueur*sizeof(int32_t*));
+  for (size_t i = 0; i < longueur; i++) {
+    data[i] = malloc(largeur*sizeof(int32_t));
+  }
+  fseek(fichier, 11, SEEK_SET);
+  for (size_t y = 0; y < longueur; y++) {
+    for (size_t x = 0; x < largeur; x++) {
+      data[y][x] = fgetc(fichier);
+    }
+  }
+  fclose(fichier);
+  return data;
+}
+
+// récupération d'un tableau de trois matrices des couleurs de taille "longueurXlargeur"
+int32_t ***recuper_data_couleur(const char* file_ppm,uint32_t largeur,uint32_t longueur)
+{
+  FILE* fichier = fopen(file_ppm, "r+");
+  int32_t*** data = malloc(3*sizeof(int32_t**)); // 3 pointeurs vers les trois matrices des différentes couleurs
+  for (size_t i = 0; i < 3; i++) {
+    data[i] = malloc(longueur*sizeof(int32_t*));
+    for (size_t j = 0; j < longueur; j++) {
+      data[i][j] = malloc(largeur*sizeof(int32_t));
+    }
+  }
+
+
+  fseek(fichier, 11, SEEK_SET);// on enleve l'entete 11 octets
+  // on parcours les données
+  for (size_t y = 0; y < longueur; y++) {
+    for (size_t x = 0; x < largeur; x++) {
+      for (size_t i = 0; i < 3; i++) {
+        data[i][y][x] = fgetc(fichier);
+      }
+    }
+  }
+  fclose(fichier);
+  return data;
+}
 
 // nombre de chiffre dans un nombre pour savoir le nombre d'octets dans l'entête
 int nombre_chiffre(int32_t nombre) {
@@ -102,20 +102,22 @@ Entete* recuper_entete(const char* file_pgm) {
 int main(int argc, char const* argv[]) {
     (void) argc;
     Entete* entete = NULL;  // entête du fichier pgm
-    //int32_t** data = NULL;   // le contenu, les pixels
+    int32_t** data_gris = NULL;   // la matrice des pixels gris : double pointeurs
+    int32_t*** data_couleurs = NULL; // tableau de trois matrices des trois couleurs : triple pointeurs +
     entete = recuper_entete(argv[1]);
-    printf("%d\n", entete->type);
-    printf("%d\n", entete->longueur);
-    printf("%d\n", entete->largeur);
-    printf("%d\n", entete->nbre_octet);
-    //data = recuper_data(argv[1]);
-    // test de la recuperation de data
-    //for (size_t y = 0; y < 11; y++) {
-    //   for (size_t x = 0; x < 8; x++) {
-    //  printf("%d\n", entete[y]);
-    //     printf("%ld\n", 8*y+x);
-    //   }
-    //}
+
+    // test de l'entete
+
+    // printf("%d\n", entete->type);
+    // printf("%d\n", entete->longueur);
+    // printf("%d\n", entete->largeur);
+    // printf("%d\n", entete->nbre_octet);
+
+    if (entete->type = 53 /* on est dans le gris le fichier est pgm*/) {
+      data_gris = recuper_data_gris(argv[1], entete->largeur, entete->longueur);
+    } else if (entete->type = 54 /* on est dans le cas des couleurs, le fichier est ppm*/) {
+      data_couleurs = recuper_data_couleur(argv[1], entete->largeur, entete->longueur);
+    }
 
     return 0;
 }
