@@ -41,25 +41,25 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab, int exDC)
 {
     /* Codage de DC*/
-	uint8_t* ptr_nbr_bit;
-    struct bitstream* stream;
-    stream = jpeg_get_bitstream(image);
-    ptr_nbr_bit = malloc(sizeof(uint8_t));
-    uint8_t sample_type = 0;
-    uint8_t color_component = 0; /* attention */
-    struct huff_table* pointeur_sur_htable;
-    uint32_t suite_bit_premier;
-    uint32_t suite_bit_suivant;
-    uint8_t value = 7;
-    //bitstream_write_bits(stream,55551, 16, true);
-    pointeur_sur_htable = jpeg_get_huffman_table(image, 0,0);
-    value = calc_magnitude(*ptr_tab-exDC);
-    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
-    suite_bit_suivant = num_magnitude(*ptr_tab-exDC, calc_magnitude(*ptr_tab-exDC));
+   uint8_t* ptr_nbr_bit;
+   struct bitstream* stream;
+   stream = jpeg_get_bitstream(image);
+   ptr_nbr_bit = malloc(sizeof(uint8_t));
+   uint8_t sample_type = 0;
+   uint8_t color_component = 0; /* attention */
+   struct huff_table* pointeur_sur_htable;
+   uint32_t suite_bit_premier;
+   uint32_t suite_bit_suivant;
+   uint8_t value = 7;
+   //bitstream_write_bits(stream,55551, 16, true);
+   pointeur_sur_htable = jpeg_get_huffman_table(image, 0,0);
+   value = calc_magnitude(*ptr_tab-exDC);
+   suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
+   suite_bit_suivant = num_magnitude(*ptr_tab-exDC, calc_magnitude(*ptr_tab-exDC));
     
     
-    bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
-    bitstream_write_bits(stream, suite_bit_suivant, nbr_bit_binaire(suite_bit_suivant), false);
+   bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
+   bitstream_write_bits(stream, suite_bit_suivant, value, false);
    /* Codage des AC*/
    RLE(stream, ptr_tab, taille_tab, image);
    bitstream_write_bits(stream, 10, 4, true);

@@ -12,13 +12,13 @@
 int32_t** recuper_data(const char* file_pgm, int32_t* entete)
 {
     FILE* fichier = fopen(file_pgm, "r+");
-    int32_t** data = malloc(*entete*sizeof(int32_t*));
-    for (size_t i = 0; i < *(entete); i++) {
-      data[i] = malloc(*(entete+1)*sizeof(int32_t));
+    int32_t** data = malloc(*(entete+1)*sizeof(int32_t*));
+    for (size_t i = 0; i < *(entete+1); i++) {
+      data[i] = malloc(*(entete)*sizeof(int32_t));
     }
-    fseek(fichier, 11, SEEK_SET);
-    for (size_t y = 0; y < *entete; y++) {
-      for (size_t x = 0; x < *(entete+1); x++) {
+    fseek(fichier, *(entete+2), SEEK_SET);
+    for (size_t y = 0; y < *(entete+1); y++) {
+      for (size_t x = 0; x < *(entete); x++) {
         data[y][x] = fgetc(fichier);
       }
 }
@@ -80,6 +80,7 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
 int32_t *recuper_entete(const char* file_pgm)
 {
     FILE* fichier = fopen(file_pgm, "r+");
+    int taille = 0;
     int32_t *parametre = malloc(11*sizeof(int32_t));
     int compteur = 0;
     int nbr=0;
@@ -88,38 +89,48 @@ int32_t *recuper_entete(const char* file_pgm)
     str[0] = fgetc(fichier);
     str[1] = fgetc(fichier);
     str[2] = fgetc(fichier);
+    taille++;
+    taille++;
+    taille++;
     if (str[0]==5*16 && str[1]==3*16+5 && str[2]==10)
     {
     printf("P5 OK");
     current = fgetc(fichier);
+    taille++;
     while (!(current == 32))
     {
         nbr = nbr*10+current-3*16;
         current = fgetc(fichier);
+        taille++;
     }
     *(parametre+compteur) = nbr;
     nbr = 0;
     compteur++;
     current = fgetc(fichier);
+    taille++;
     while (!(current == 10))
     {
         nbr = nbr*10+current-3*16;
         current = fgetc(fichier);
+        taille++;
     }
     *(parametre+compteur) = nbr;
     nbr = 0;
     compteur++;
     current = fgetc(fichier);
+    taille++;
     while (!(current == 10))
     {
         nbr = nbr*10+current-3*16;
         current = fgetc(fichier);
+        taille++;
     }
     *(parametre+compteur) = nbr;
     nbr = 0;
     compteur++;
     }
     fclose(fichier);
+    *(parametre+2) = taille;
     return parametre;
     /*
     if (*(vect2)+*(vect2+1) == "5035")
@@ -158,9 +169,9 @@ struct jpeg *creation_jpeg(int32_t *parametres)
     //htable = jpeg_get_huffman_table(image, acdc, cc);
     jpeg_set_huffman_table(image, acdc, cc, htable);
     }
-    for (int i=0; i<3; i++)
+    for (int i=0; i<2; i++)
     {
-    jpeg_set_sampling_factor(image,cc, i, 4);
+    jpeg_set_sampling_factor(image,cc, i, 1);
     }
     uint8_t *qtables;
     qtables = &quantification_table_Y;
@@ -202,7 +213,7 @@ int32_t ***zigzag_bloc(int32_t** ptr_sur_tab, int* entete)
     {
     for (int j1 = 0; j1<8; j1++)
     {
-        data[i1][j1] = *(*(ptr_sur_tab+i+i1)+j+j1);
+        data[i1][j1] = ptr_sur_tab[i+i1][j+j1];//*(*(ptr_sur_tab+i+i1)+j+j1);
     }
     }
     ptr_sur_tab_retour[i/8][j/8] = data; 
@@ -213,9 +224,10 @@ int32_t ***zigzag_bloc(int32_t** ptr_sur_tab, int* entete)
     int32_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/8 )*((int) hauteur / 8)* sizeof(int32_t**));
     for (int i=0; i<((int) largeur/8 )*((int) hauteur / 8);i++)
     {
-        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i*8/(largeur)][(i)%(largeur/8)];
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i/(largeur/8)][(i)%(largeur/8)];
     }
 
+    printf("hello fini creation vecteur\n");
 
     return ptr_sur_tab_retour_ordonnee;
 }
@@ -236,8 +248,23 @@ int main(int argc, char const *argv[])
     image = creation_jpeg(entete);
     data_new = bonne_taille(data, entete);
     ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
+
+    int largeur = *entete;
+    printf("hello \n");
+    if (*entete % 8 != 0)
+    {
+    largeur += 8 - *entete % 8;
+    }
+    
+    int hauteur = *(entete+1);
+    if (*(entete+1) % 8 != 0)
+    {
+    hauteur += (8 - *(entete+1) % 8);
+    }
+
+    
     /*DCT + ZigZagi*/
-    nbr_MCU = (*(entete+1)/8)*(*entete/8);
+    nbr_MCU = (largeur/8)*(hauteur/8);
     int32_t* ptr_tab_data; 
     int8_t taille = 64;
     jpeg_write_header(image);
@@ -248,6 +275,7 @@ int main(int argc, char const *argv[])
     gestion_compression(image, ptr_tab_data, taille, exDC);
     exDC = *ptr_tab_data;
 
+    printf("%d \n", hauteur);
     }
     jpeg_write_footer(image);
     jpeg_destroy(image);

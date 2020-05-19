@@ -96,7 +96,7 @@ float fonctionC(int32_t indice)
 {
     if (indice == 0)
     {
-        return 1/sqrt(2);
+        return (float) 1/sqrt(2);
     }
     return 1;
 }
@@ -110,7 +110,7 @@ float transformation(int32_t** s, int i, int j)
     {
         for (y=0; y<8; y++)
         {
-            somme += (*(*(s+x)+y)-128) * cos((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cos((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
+            somme += (*(*(s+x)+y)-128) * cosf((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cosf((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
@@ -122,9 +122,9 @@ int t[8][8] = {0};
 int32_t** dtc(int32_t** t)
 {
     printf(" %d \n", *(*(t+1)+2));
-    float** nouveau = malloc(8*sizeof(int32_t*));
+    float** nouveau = malloc(8*sizeof(int16_t*));
     for (size_t i = 0; i < 8; i++) {
-      nouveau[i] = malloc(8*sizeof(int32_t));
+      nouveau[i] = malloc(8*sizeof(int16_t));
     }
     int i;
     int j;
@@ -132,7 +132,7 @@ int32_t** dtc(int32_t** t)
     {
         for (j=0; j < 8; j++)
         {
-            nouveau[i][j] = (int32_t) (transformation(t, i, j));
+            nouveau[i][j] = (int16_t) (transformation(t, i, j));
         }
     }
     affichage_dct(nouveau);
@@ -141,11 +141,11 @@ int32_t** dtc(int32_t** t)
 
 int32_t* quantification(float* t)
 {
-    int32_t *nouveau = malloc(64*sizeof(int*));
+    int32_t *nouveau = malloc(64*sizeof(int32_t*));
     int32_t j;
     for (j=0; j < 64; j++)
     {
-        nouveau[j] = (int32_t) (*(t+j)/(quantification_table_Y[j]));
+        nouveau[j] = (int16_t) ((int16_t) *(t+j))/(quantification_table_Y[j]);
     }
     affichage_quantification(nouveau);
     return nouveau;
@@ -161,7 +161,7 @@ void affichage(float* t)
     printf("\n");
     printf("\n");
 }
-void affichage_quantification(int32_t* t)
+void affichage_quantification(int* t)
 {
     printf("Affichage quantification \n");
     for (int j=0; j < 64; j++)
@@ -170,7 +170,19 @@ void affichage_quantification(int32_t* t)
     }
     printf("\n");
 }
-
+void affichage_data(int** t)
+{
+    printf(" Affichage données d'entrées de dct: \n");
+    for (int j=0; j < 8; j++)
+    {
+    for (int i=0; i < 8; i++)
+    {
+       printf("%d ->", *(*(t+i)+j));
+    }
+    printf("\n");
+    }
+    printf("\n");
+}
 void affichage_dct(float** t)
 {
     printf(" Affichage DCT: \n");
@@ -178,7 +190,7 @@ void affichage_dct(float** t)
     {
     for (int i=0; i < 8; i++)
     {
-       printf("%f ->", *(*(t+i)+j));
+       printf("%f ->", (float) *(*(t+i)+j));
     }
     printf("\n");
     }
@@ -186,6 +198,7 @@ void affichage_dct(float** t)
 }
 int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data)
 {
+    affichage_data(data);
     return quantification(zigZag(dtc(data)));
 }
 /*
