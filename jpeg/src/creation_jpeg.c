@@ -16,7 +16,7 @@ int32_t** recuper_data(const char* file_pgm, int32_t* entete)
     for (size_t i = 0; i < *(entete+1); i++) {
       data[i] = malloc(*(entete)*sizeof(int32_t));
     }
-    fseek(fichier, *(entete+2), SEEK_SET);
+    fseek(fichier, *(entete+3), SEEK_SET);
     for (size_t y = 0; y < *(entete+1); y++) {
       for (size_t x = 0; x < *(entete); x++) {
         data[y][x] = fgetc(fichier);
@@ -41,6 +41,7 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
     bonne_ordonnee += (8 - *(entete+1) % 8);
     }
         
+    printf("hello0 \n"); 
     // On créé un nouveau tableau data aux bonnes dimensions
     int32_t** data_new = malloc(bonne_ordonnee*sizeof(int32_t*));
     for (size_t i = 0; i < bonne_ordonnee; i++) {
@@ -48,7 +49,7 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
       data_new[i] = malloc(bonne_abscisse*sizeof(int32_t));
     }
     
-    
+    printf("hello1 \n"); 
     // On le remplit avec les anciennes valeurs
     for (size_t y = 0; y < *(entete+1); y++) {
       for (size_t x = 0; x < *(entete); x++) {
@@ -56,6 +57,7 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
       }
     }
         
+    printf("hello2 \n"); 
     // On met les nouvelles valeurs
     // En bas d'abord
      for (size_t y = *(entete+1); y < bonne_ordonnee; y++) {
@@ -64,9 +66,10 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
         }
     }
     // Puis à droite
+    printf("hello2 \n"); 
      for (size_t y = 0; y < bonne_ordonnee; y++) {
         for (size_t x = *entete; x < bonne_abscisse; x++) {
-            data_new[y][x] = data[y][*entete -1];
+            data_new[y][x] = data[*(entete+1)-1][*entete -1];
         }
     }
 
@@ -81,7 +84,7 @@ int32_t *recuper_entete(const char* file_pgm)
 {
     FILE* fichier = fopen(file_pgm, "r+");
     int taille = 0;
-    int32_t *parametre = malloc(11*sizeof(int32_t));
+    int32_t *parametre = malloc(4*sizeof(int32_t));
     int compteur = 0;
     int nbr=0;
     int current = 0;
@@ -125,12 +128,12 @@ int32_t *recuper_entete(const char* file_pgm)
         current = fgetc(fichier);
         taille++;
     }
-    *(parametre+compteur) = nbr;
     nbr = 0;
     compteur++;
     }
     fclose(fichier);
-    *(parametre+2) = taille;
+    compteur++;
+    *(parametre+3) = taille;
     return parametre;
     /*
     if (*(vect2)+*(vect2+1) == "5035")
@@ -243,10 +246,13 @@ int main(int argc, char const *argv[])
     struct jpeg *image;
     struct bitstream *stream;
     /* récupération de l'image et création des données */
+    printf("Hello avant recup \n");
     entete = recuper_entete(argv[1]);
     data = recuper_data(argv[1], entete);
     image = creation_jpeg(entete);
+    printf("GO GO GO \n");
     data_new = bonne_taille(data, entete);
+    printf("GO GO GO \n");
     ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
 
     int largeur = *entete;

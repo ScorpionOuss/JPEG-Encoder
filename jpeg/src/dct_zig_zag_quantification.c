@@ -60,14 +60,14 @@ void parcoursDecroissant(float** tab, float *vecteur, int x, int y, int *adresse
 
 
 
-float *zigZag(float** tab)
+int *zigZag(int** tab)
 {
     int x = 0;
     int y = 0;
     int i;
     int j;
     int *indiceCour = malloc(sizeof(int));
-    float *vecteurRes = malloc(64*sizeof(float));
+    int *vecteurRes = malloc(64*sizeof(int));
     *indiceCour = 1;
     vecteurRes[0] = *(*(tab));
     for (i=0; i<3; i++)
@@ -113,18 +113,22 @@ float transformation(int32_t** s, int i, int j)
             somme += (*(*(s+x)+y)-128) * cosf((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cosf((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
+    if (i == 5)
+    {
+    printf("%f \n", (0.25)*fonctionC(i)*fonctionC(j)*somme);
+    }
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
 
 int t[8][8] = {0};
 
-int32_t** dtc(int32_t** t)
+int** dtc(int32_t** t)
 {
     printf(" %d \n", *(*(t+1)+2));
-    float** nouveau = malloc(8*sizeof(int16_t*));
+    int** nouveau = malloc(8*sizeof(int*));
     for (size_t i = 0; i < 8; i++) {
-      nouveau[i] = malloc(8*sizeof(int16_t));
+      nouveau[i] = malloc(8*sizeof(int));
     }
     int i;
     int j;
@@ -132,20 +136,20 @@ int32_t** dtc(int32_t** t)
     {
         for (j=0; j < 8; j++)
         {
-            nouveau[i][j] = (int16_t) (transformation(t, i, j));
+            nouveau[i][j] = (int) (transformation(t, i, j));
         }
     }
     affichage_dct(nouveau);
     return nouveau;
 }
 
-int32_t* quantification(float* t)
+int32_t* quantification(int* t)
 {
     int32_t *nouveau = malloc(64*sizeof(int32_t*));
     int32_t j;
     for (j=0; j < 64; j++)
     {
-        nouveau[j] = (int16_t) ((int16_t) *(t+j))/(quantification_table_Y[j]);
+        nouveau[j] = (int16_t) ((*(t+j))/(quantification_table_Y[j]));
     }
     affichage_quantification(nouveau);
     return nouveau;
@@ -177,20 +181,20 @@ void affichage_data(int** t)
     {
     for (int i=0; i < 8; i++)
     {
-       printf("%d ->", *(*(t+i)+j));
+       printf("%d ->", *(*(t+j)+i));
     }
     printf("\n");
     }
     printf("\n");
 }
-void affichage_dct(float** t)
+void affichage_dct(int** t)
 {
     printf(" Affichage DCT: \n");
     for (int j=0; j < 8; j++)
     {
     for (int i=0; i < 8; i++)
     {
-       printf("%f ->", (float) *(*(t+i)+j));
+       printf("%d ->", (int) *(*(t+j)+i));
     }
     printf("\n");
     }
