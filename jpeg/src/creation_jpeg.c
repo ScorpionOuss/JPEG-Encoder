@@ -72,7 +72,7 @@ int32_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longu
 int32_t ***recuper_data_couleur(const char* file_ppm,uint32_t largeur,uint32_t longueur, int32_t taille)
 {
   FILE* fichier = fopen(file_ppm, "r+");
-  int32_t*** data = malloc(3*sizeof(int32_t**)); // 3 pointeurs vers les trois matrices des différentes couleurs
+  int32_t*** data; // 3 pointeurs vers les trois matrices des différentes couleurs
     data = malloc(longueur*sizeof(int32_t*));
     for (size_t j = 0; j < longueur; j++) {
       data[j] = malloc(largeur*sizeof(int32_t*));
@@ -231,13 +231,20 @@ int32_t ***bonne_taille_couleur(int32_t ***data, int32_t* entete)
     for (size_t i = 0; i < bonne_ordonnee; i++) {
       
       data_new[i] = malloc(bonne_abscisse*sizeof(int32_t*));
+      for (size_t j = 0; j < bonne_ordonnee; j++)
+      {
+        data_new[i][j] = malloc(3*sizeof(int32_t));
+      }
     }
     
     printf("hello apres premieère boucle \n");    
     // On le remplit avec les anciennes valeurs
     for (size_t y = 0; y < *(entete+1); y++) {
       for (size_t x = 0; x < *(entete); x++) {
-          data_new[y][x] = data[y][x];
+          for (size_t z = 0; z<3; z++)
+          {
+          data_new[y][x][z] = data[y][x][z];
+          }
       }
     }
         
@@ -247,14 +254,20 @@ int32_t ***bonne_taille_couleur(int32_t ***data, int32_t* entete)
     // En bas d'abord
      for (size_t y = *(entete+1); y < bonne_ordonnee; y++) {
         for (size_t x = 0; x < *entete; x++) {
-            data_new[y][x] = data[*(entete+1)-1][x];
+          for (size_t z = 0; z<3; z++)
+          {
+            data_new[y][x][z] = data[*(entete+1)-1][x][z];
+          }
         }
     }
     // Puis à droite
     printf("hello2 \n"); 
      for (size_t y = 0; y < bonne_ordonnee; y++) {
         for (size_t x = *entete; x < bonne_abscisse; x++) {
-            data_new[y][x] = data[*(entete+1)-1][*entete -1];
+          for (size_t z = 0; z<3; z++)
+          {
+            data_new[y][x][z] = data[*(entete+1)-1][*entete -1][z];
+          }
         }
     }
 
@@ -481,12 +494,14 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete)
     for (int j=0; j<largeur; j=j+8)
     {
     
-    int32_t** data = malloc(8*sizeof(int32_t**));
-    for (size_t i3 = 0; i3 < 8; i3++) {
-      data[i3] = malloc(8*sizeof(int32_t*));
-    }
+
+    
     for (int i2= 0; i2<3; i2++)
     {
+     int32_t** data = malloc(8*sizeof(int32_t*));
+    for (size_t i3 = 0; i3 < 8; i3++) {
+      data[i3] = malloc(8*sizeof(int32_t*));
+      } 
     for (int i1 = 0; i1<8; i1++)
     {
     for (int j1 = 0; j1<8; j1++)
@@ -606,9 +621,9 @@ int main(int argc, char const *argv[])
     {
     ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3); 
     /* Huffman  */
-    gestion_compression(image, ptr_tab_data, taille, exDC[i%3], i%3);
+    gestion_compression(image, ptr_tab_data, taille, exDC[i%3],i%3);
     exDC[i%3] = *ptr_tab_data;
-
+    printf("%d %d %d \n", exDC[0], exDC[1], exDC[2]);
     }
     jpeg_write_footer(image);
     jpeg_destroy(image);

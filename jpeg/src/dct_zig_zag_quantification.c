@@ -115,7 +115,7 @@ float transformation(int32_t** s, int i, int j)
     }
 
     
-    printf("Aux coord i=%i j=%i, %f \n", i, j, (0.25)*fonctionC(i)*fonctionC(j)*somme);
+    //printf("Aux coord i=%i j=%i, %f \n", i, j, (0.25)*fonctionC(i)*fonctionC(j)*somme);
     
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
@@ -125,7 +125,7 @@ int t[8][8] = {0};
 
 int** dtc(int32_t** t)
 {
-    printf(" %d \n", *(*(t+1)+2));
+    //printf(" %d \n", *(*(t+1)+2));
     int** nouveau = malloc(8*sizeof(int*));
     for (size_t i = 0; i < 8; i++) {
       nouveau[i] = malloc(8*sizeof(int));

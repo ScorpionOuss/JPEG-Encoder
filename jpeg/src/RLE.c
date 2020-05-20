@@ -41,7 +41,8 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     }
     if (!(nbr_zero_prec==0))
     {
-    bitstream_write_bits(stream, 10, 4, true);
+    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,0, ptr_nbr_bit);
+    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, true);
     }
 }
 
