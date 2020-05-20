@@ -153,13 +153,23 @@ int** dtc(int32_t** t)
     return nouveau;
 }
 
-int32_t* quantification(int* t)
+int32_t* quantification(int* t, int cc)
 {
     int32_t *nouveau = malloc(64*sizeof(int32_t*));
     int32_t j;
+    if (cc==0)
+    {
     for (j=0; j < 64; j++)
     {
         nouveau[j] = (int16_t) ((*(t+j))/(quantification_table_Y[j]));
+    }
+    }
+    else
+    {
+    for (j=0; j < 64; j++)
+    {
+        nouveau[j] = (int16_t) ((*(t+j))/(quantification_table_CbCr[j]));
+    }
     }
     affichage_quantification(nouveau);
     return nouveau;
@@ -210,10 +220,10 @@ void affichage_dct(int** t)
     }
     printf("\n");
 }
-int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data)
+int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc)
 {
     affichage_data(data);
-    return quantification(zigZag(dtc(data)));
+    return quantification(zigZag(dtc(data)), cc);
 }
 /*
 int main(void)

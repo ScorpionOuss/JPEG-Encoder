@@ -6,7 +6,7 @@
 
 
 
-extern int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data);
+extern int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc);
 
 
 #endif

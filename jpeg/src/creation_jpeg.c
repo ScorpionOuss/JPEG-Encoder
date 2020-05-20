@@ -17,6 +17,38 @@ struct Entete {
     int32_t range_couleur;
 };
 
+int32_t ***Y_Cb_Cr(int32_t*** data, int32_t longueur, int32_t largeur)
+{
+  int32_t*** data_nouv = malloc(longueur*sizeof(int32_t**)); 
+  for (size_t i = 0; i < longueur; i++) {
+    data_nouv[i] = malloc(largeur*sizeof(int32_t*));
+    for (size_t j = 0; j < largeur; j++) {
+      data_nouv[i][j] = malloc(3*sizeof(int32_t));
+    }
+  }
+
+  // On définit trois pointeurs pour les calculs, un sur chaque composante RGB
+  
+  int32_t R;
+  int32_t G;
+  int32_t B;
+
+  for (size_t lon = 0; lon < longueur; lon++) {
+    for (size_t lar = 0; lar < largeur; lar++) {
+        R = data[lon][lar][0];
+        G = data[lon][lar][1];
+        B = data[lon][lar][2];
+
+        data_nouv[lon][lar][0] = (int) 0.299 * (float) R + 0.587 * (float) G + 0.114 * (float) B;
+        data_nouv[lon][lar][1] = (int) -0.1687 * (float) R - 0.3313 * (float) G + 0.5 * (float) B + 128;
+        data_nouv[lon][lar][2] = (int) 0.5 * (float) R - 0.4187* (float) G - 0.0813 * (float) B + 128;
+
+    }
+  }
+
+  return data_nouv;
+
+} 
 
 // récupération des pixel des fichiers pgm dans une matrice de taille "longueurXlargeur"
 int32_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longueur, int32_t taille)
@@ -41,20 +73,23 @@ int32_t ***recuper_data_couleur(const char* file_ppm,uint32_t largeur,uint32_t l
 {
   FILE* fichier = fopen(file_ppm, "r+");
   int32_t*** data = malloc(3*sizeof(int32_t**)); // 3 pointeurs vers les trois matrices des différentes couleurs
-  for (size_t i = 0; i < 3; i++) {
-    data[i] = malloc(longueur*sizeof(int32_t*));
+    data = malloc(longueur*sizeof(int32_t*));
     for (size_t j = 0; j < longueur; j++) {
-      data[i][j] = malloc(largeur*sizeof(int32_t));
+      data[j] = malloc(largeur*sizeof(int32_t*));
+      for (size_t i = 0; i < largeur; i++) {
+        data[j][i] = malloc(3*sizeof(int32_t));
+        }
     }
-  }
+  
 
 
-  fseek(fichier, 11, SEEK_SET);// on enleve l'entete 11 octets
+
+  fseek(fichier, taille, SEEK_SET);// on enleve l'entete 11 octets
   // on parcours les données
   for (size_t y = 0; y < longueur; y++) {
     for (size_t x = 0; x < largeur; x++) {
       for (size_t i = 0; i < 3; i++) {
-        data[i][y][x] = fgetc(fichier);
+        data[y][x][i] = fgetc(fichier);
       }
     }
   }
@@ -85,19 +120,19 @@ struct Entete* recupe_entete(const char* file_pgm) {
     fseek(fichier, 1, SEEK_SET);
     entete->type = fgetc(fichier);
     fseek(fichier, 3, SEEK_SET);
-
-    longueur = fgetc(fichier) - 48;
-    while (fgetc(fichier) != 32) {
-        fseek(fichier, -1, SEEK_CUR);
-        longueur = 10 * longueur + fgetc(fichier) - 48;
-    }
-    entete->longueur = longueur;
     largeur = fgetc(fichier) - 48;
-    while (fgetc(fichier) != 10) {
+    while (fgetc(fichier) != 32) {
         fseek(fichier, -1, SEEK_CUR);
         largeur = 10 * largeur + fgetc(fichier) - 48;
     }
     entete->largeur = largeur;
+    longueur = fgetc(fichier) - 48;
+    while (fgetc(fichier) != 10) {
+        fseek(fichier, -1, SEEK_CUR);
+        longueur = 10 * longueur + fgetc(fichier) - 48;
+    }
+    entete->longueur = longueur;
+
     range_couleur = fgetc(fichier)-48;
     while (fgetc(fichier) != 10) {
         fseek(fichier, -1, SEEK_CUR);
@@ -140,15 +175,13 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
     bonne_ordonnee += (8 - *(entete+1) % 8);
     }
         
-    printf("hello0 \n"); 
     // On créé un nouveau tableau data aux bonnes dimensions
     int32_t** data_new = malloc(bonne_ordonnee*sizeof(int32_t*));
     for (size_t i = 0; i < bonne_ordonnee; i++) {
       
       data_new[i] = malloc(bonne_abscisse*sizeof(int32_t));
     }
-    
-    printf("hello1 \n"); 
+    printf("hello avant premieère boucle \n");    
     // On le remplit avec les anciennes valeurs
     for (size_t y = 0; y < *(entete+1); y++) {
       for (size_t x = 0; x < *(entete); x++) {
@@ -176,7 +209,59 @@ int32_t **bonne_taille(int32_t **data, int32_t* entete)
     return data_new;
 
 }
+int32_t ***bonne_taille_couleur(int32_t ***data, int32_t* entete)
+//Transforme l'image de sorte que ses dimensions soient un multiple de 8
+{
+    // On calcule les bonnes dimensions
+    int bonne_abscisse = *entete;
+    if (*entete % 8 != 0)
+    {
+    bonne_abscisse += 8 - *entete % 8;
+    }
+    
+    int bonne_ordonnee = *(entete+1);
+    if (*(entete+1) % 8 != 0)
+    {
+    bonne_ordonnee += (8 - *(entete+1) % 8);
+    }
+        
+    printf("hello avant premieère boucle \n");    
+    // On créé un nouveau tableau data aux bonnes dimensions
+    int32_t*** data_new = malloc(bonne_ordonnee*sizeof(int32_t*));
+    for (size_t i = 0; i < bonne_ordonnee; i++) {
+      
+      data_new[i] = malloc(bonne_abscisse*sizeof(int32_t*));
+    }
+    
+    printf("hello apres premieère boucle \n");    
+    // On le remplit avec les anciennes valeurs
+    for (size_t y = 0; y < *(entete+1); y++) {
+      for (size_t x = 0; x < *(entete); x++) {
+          data_new[y][x] = data[y][x];
+      }
+    }
+        
+    printf("hello avant premieère boucle \n");    
+    printf("hello2 \n"); 
+    // On met les nouvelles valeurs
+    // En bas d'abord
+     for (size_t y = *(entete+1); y < bonne_ordonnee; y++) {
+        for (size_t x = 0; x < *entete; x++) {
+            data_new[y][x] = data[*(entete+1)-1][x];
+        }
+    }
+    // Puis à droite
+    printf("hello2 \n"); 
+     for (size_t y = 0; y < bonne_ordonnee; y++) {
+        for (size_t x = *entete; x < bonne_abscisse; x++) {
+            data_new[y][x] = data[*(entete+1)-1][*entete -1];
+        }
+    }
 
+    
+    return data_new;
+
+}
 
 
 int32_t *recuper_entete(const char* file_pgm)
@@ -194,8 +279,6 @@ int32_t *recuper_entete(const char* file_pgm)
     taille++;
     taille++;
     taille++;
-    if (str[0]==5*16 && str[1]==3*16+5 && str[2]==10)
-    {
     printf("P5 OK");
     current = fgetc(fichier);
     taille++;
@@ -229,7 +312,6 @@ int32_t *recuper_entete(const char* file_pgm)
     }
     nbr = 0;
     compteur++;
-    }
     fclose(fichier);
     compteur++;
     *(parametre+3) = taille;
@@ -246,6 +328,47 @@ int32_t *recuper_entete(const char* file_pgm)
     */
 }
 
+
+struct jpeg *creation_jpeg_couleur(int32_t *parametres)
+//fonction qui cree un fichier jpeg : parametres est le tableau qui contient les infos de recup_data
+{
+    struct jpeg *image = jpeg_create();
+    //Premiere ligne mystere
+    jpeg_set_ppm_filename(image, "chabanas.ppm");
+    jpeg_set_jpeg_filename(image, "resultat.jpg");
+    jpeg_set_image_width(image, *(parametres));
+    jpeg_set_image_height(image, *(parametres+1));
+    jpeg_set_nb_components(image, 3);
+    uint8_t *qtables;
+    qtables = &quantification_table_Y;
+
+    for (int cc=0; cc<3; cc++)
+    {
+    for (int acdc=0; acdc<2;acdc++)
+    {
+    /*
+     facteur d'echantillonage: 4:4:4
+    jpeg_set_sampling_factor(image,cc, enum direction dir, sampling_factor);
+    */
+    struct huff_table *htable;
+
+    htable = huffman_table_build(htables_nb_symb_per_lengths[acdc][cc], htables_symbols[acdc][cc], htables_nb_symbols[acdc][cc]);
+    //htable = jpeg_get_huffman_table(image, acdc, cc);
+    jpeg_set_huffman_table(image, acdc, cc, htable);
+    }
+    }
+    for (int cc=0; cc<3; cc++)
+    {
+    for (int i=0; i<2; i++)
+    {
+    jpeg_set_sampling_factor(image,cc, i, 1);
+    }
+    jpeg_set_quantization_table(image, cc, qtables);
+    }
+        
+
+    return image;
+}
 
 struct jpeg *creation_jpeg(int32_t *parametres)
 //fonction qui cree un fichier jpeg : parametres est le tableau qui contient les infos de recup_data
@@ -333,15 +456,64 @@ int32_t ***zigzag_bloc(int32_t** ptr_sur_tab, int* entete)
 
     return ptr_sur_tab_retour_ordonnee;
 }
+int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete)
+{
+    // On calcule les bonnes dimensions
+    int largeur = *entete;
+    if (*entete % 8 != 0)
+    {
+    largeur += 8 - *entete % 8;
+    }
+    
+    int hauteur = *(entete+1);
+    if (*(entete+1) % 8 != 0)
+    {
+    hauteur += (8 - *(entete+1) % 8);
+    }
+ 
+    int32_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(int32_t***));
+    for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) {
+      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(int32_t**));
+    } 
+    for (int i = 0; i<hauteur;i=i+8)
+    {
+    for (int j=0; j<largeur; j=j+8)
+    {
+    
+    int32_t** data = malloc(8*sizeof(int32_t**));
+    for (size_t i3 = 0; i3 < 8; i3++) {
+      data[i3] = malloc(8*sizeof(int32_t*));
+    }
+    for (int i2= 0; i2<3; i2++)
+    {
+    for (int i1 = 0; i1<8; i1++)
+    {
+    for (int j1 = 0; j1<8; j1++)
+    {
+        data[i1][j1] = ptr_sur_tab[i+i1][j+j1][i2];//*(*(ptr_sur_tab+i+i1)+j+j1);
+    }
+    }
+    ptr_sur_tab_retour[i/8][3*j/8+i2] = data; 
+    }
+    }
+    }
+
+    int32_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/8 )*((int) hauteur / 8)*3 *sizeof(int32_t**));
+    for (int i=0; i<(3*(int) largeur/8 )*((int) hauteur / 8);i++)
+    {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i/(3*largeur/8)][(i)%(3*largeur/8)];
+    }
+
+
+    return ptr_sur_tab_retour_ordonnee;
+}
+
 
 int main(int argc, char const *argv[])
 {
     int32_t* entete = NULL; // entête du fichier pgm
-    int32_t** data = NULL;   // le contenu, les pixels
-    int32_t** data_new = NULL;
     int32_t*** ptr_sur_tab_MCU;
     int nbr_MCU;
-    int exDC = 0;
     struct Entete *entete1;  // entête du fichier pgm
     entete1 = recupe_entete(argv[1]);
     struct jpeg *image;
@@ -349,7 +521,12 @@ int main(int argc, char const *argv[])
     /* récupération de l'image et création des données */
     printf("Hello avant recup \n");
     entete = recuper_entete(argv[1]);
-    data = recuper_data(argv[1], entete);
+    //data = recuper_data(argv[1], entete);
+    if (entete1->type == 53)
+    {
+    int32_t** data = NULL;   // le contenu, les pixels
+    int32_t** data_new = NULL;
+    int exDC = 0;
     data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
     image = creation_jpeg(entete);
     data_new = bonne_taille(data, entete);
@@ -375,9 +552,9 @@ int main(int argc, char const *argv[])
     jpeg_write_header(image);
     for (int i=0; i<nbr_MCU;i++)
     {
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i)); 
+    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), 0); 
     /* Huffman  */
-    gestion_compression(image, ptr_tab_data, taille, exDC);
+    gestion_compression(image, ptr_tab_data, taille, exDC, 0);
     exDC = *ptr_tab_data;
 
     printf("%d \n", hauteur);
@@ -385,8 +562,58 @@ int main(int argc, char const *argv[])
     jpeg_write_footer(image);
     jpeg_destroy(image);
     /* fin*/
+    }
+    else
+    {
+    /* Avec de la couleur !!!!! */
+    int32_t*** data = NULL;   // le contenu, les pixels
+    int32_t*** data_Y = NULL;   // le contenu, les pixels
+    int32_t*** data_new = NULL;
+    int exDC[3] = {0, 0, 0};
+    printf("hello1\n");
+    data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
+    printf("hello1\n");
+    image = creation_jpeg_couleur(entete);
+    printf("hello1\n");
+    data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
+    printf("hello1\n");
+    data_new = bonne_taille_couleur(data_Y, entete);
+    printf("hello 3 \n");
+    ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete); 
+    printf("hello 3 \n");
+    int largeur = *entete;
+    if (*entete % 8 != 0)
+    {
+    largeur += 8 - *entete % 8;
+    }
+    
+    int hauteur = *(entete+1);
+    if (*(entete+1) % 8 != 0)
+    {
+    hauteur += (8 - *(entete+1) % 8);
+    }
 
     
+    /*DCT + ZigZagi*/
+    nbr_MCU = (largeur/8)*(hauteur/8)*3;
+    int32_t* ptr_tab_data; 
+    int8_t taille = 64;
+    printf("hello 3 \n");
+    jpeg_write_header(image);
+    printf("hello 3 \n");
+    for (int i=0; i<nbr_MCU;i++)
+    {
+    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3); 
+    /* Huffman  */
+    gestion_compression(image, ptr_tab_data, taille, exDC[i%3], i%3);
+    exDC[i%3] = *ptr_tab_data;
+
+    }
+    jpeg_write_footer(image);
+    jpeg_destroy(image);
+    /* fin*/
+
+    };
 
     return 0;
 }

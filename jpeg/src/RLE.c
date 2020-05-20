@@ -6,7 +6,7 @@
 #include "htables.h"
 #include  "bitstream.h"
 /*#include "magnitude.h"*/
-void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, struct jpeg* image)
+void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, struct jpeg* image, int cc)
 {
 	struct huff_table *pointeur_sur_htable;
     uint8_t i=1;
@@ -16,8 +16,7 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 	uint8_t *ptr_nbr_bit;
 	ptr_nbr_bit = malloc(sizeof(uint8_t));
     uint8_t sample_type = 1;
-    uint8_t color_component = 0; /* attention */
-    pointeur_sur_htable = jpeg_get_huffman_table(image, 1,0);
+    pointeur_sur_htable = jpeg_get_huffman_table(image, 1,cc);
     for (int i = 1; i < taille_tab; i++)
     {
     if (*(ptr_sur_tab + i) == 0)
@@ -47,7 +46,7 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 }
 
 
-void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab, int exDC)
+void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab, int exDC, int cc)
 {
     /* Codage de DC*/
    uint8_t* ptr_nbr_bit;
@@ -55,13 +54,12 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    stream = jpeg_get_bitstream(image);
    ptr_nbr_bit = malloc(sizeof(uint8_t));
    uint8_t sample_type = 0;
-   uint8_t color_component = 0; /* attention */
    struct huff_table* pointeur_sur_htable;
    uint32_t suite_bit_premier;
    uint32_t suite_bit_suivant;
    uint8_t value = 7;
    //bitstream_write_bits(stream,55551, 16, true);
-   pointeur_sur_htable = jpeg_get_huffman_table(image, 0,0);
+   pointeur_sur_htable = jpeg_get_huffman_table(image, 0,cc);
    value = calc_magnitude(*ptr_tab-exDC);
    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
    suite_bit_suivant = num_magnitude(*ptr_tab-exDC, calc_magnitude(*ptr_tab-exDC));
@@ -70,7 +68,7 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
    bitstream_write_bits(stream, suite_bit_suivant, value, false);
    /* Codage des AC*/
-   RLE(stream, ptr_tab, taille_tab, image);
+   RLE(stream, ptr_tab, taille_tab, image, cc);
    /* Ecriture fin de l'image */
 }
 
