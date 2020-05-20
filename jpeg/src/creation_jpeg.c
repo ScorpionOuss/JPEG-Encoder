@@ -339,9 +339,6 @@ struct jpeg *creation_jpeg_couleur(int32_t *parametres)
     jpeg_set_image_width(image, *(parametres));
     jpeg_set_image_height(image, *(parametres+1));
     jpeg_set_nb_components(image, 3);
-    uint8_t *qtables;
-    qtables = &quantification_table_Y;
-
     for (int cc=0; cc<3; cc++)
     {
     for (int acdc=0; acdc<2;acdc++)
@@ -363,10 +360,14 @@ struct jpeg *creation_jpeg_couleur(int32_t *parametres)
     {
     jpeg_set_sampling_factor(image,cc, i, 1);
     }
-    jpeg_set_quantization_table(image, cc, qtables);
     }
         
-
+    uint8_t *qtables;
+    qtables = &quantification_table_Y;
+    jpeg_set_quantization_table(image, 0, qtables);
+    qtables = &quantification_table_CbCr;
+    jpeg_set_quantization_table(image, 1, qtables);
+    jpeg_set_quantization_table(image, 2, qtables);
     return image;
 }
 
