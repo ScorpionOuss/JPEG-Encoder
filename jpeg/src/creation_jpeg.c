@@ -440,6 +440,7 @@ struct jpeg *creation_jpeg_couleur(int32_t *parametres)
     jpeg_set_image_width(image, *(parametres));
     jpeg_set_image_height(image, *(parametres+1));
     jpeg_set_nb_components(image, 3);
+
     for (int cc=0; cc<3; cc++)
     {
     for (int acdc=0; acdc<2;acdc++)
@@ -763,6 +764,7 @@ int main(int argc, char const *argv[])
     int32_t*** data = NULL;   // le contenu, les pixels
     int32_t*** data_Y = NULL;   // le contenu, les pixels
     int32_t*** data_new = NULL;
+    float** cosinus;
     int exDC[3] = {0, 0, 0};
     printf("hello1\n");
     data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
@@ -797,9 +799,10 @@ int main(int argc, char const *argv[])
     printf("hello 3 \n");
     jpeg_write_header(image);
     printf("hello 3 \n");
+    cosinus = precalculcos(entete*, *(entete+1));
     for (int i=0; i<nbr_MCU;i++)
     {
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3); 
+    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3, cosinus); 
     /* Huffman  */
     gestion_compression(image, ptr_tab_data, taille, exDC[i%3],i%3);
     exDC[i%3] = *ptr_tab_data;

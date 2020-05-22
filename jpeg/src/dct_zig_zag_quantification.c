@@ -120,7 +120,7 @@ float transformation(int32_t** s, int i, int j, float** cosinus)
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
-float** precalculcos(int32_t largeur, int32_t hauteur){
+float** precalculcos(int32_t largeur, int32_t longueur){
 // On factorise le calcul des cosinus
     int32_t maxi = 0;
     if (longueur > largeur){
