@@ -101,6 +101,78 @@ float fonctionC(int32_t indice)
     return 1;
 }
 
+float transformation(int32_t** s, int i, int j, float** cosinus)
+{
+    int x;
+    int y;
+    float somme=0;
+    for (x=0; x<8; x++)
+    {
+        for (y=0; y<8; y++)
+        {
+            somme += (*(*(s+x)+y)-128) * cosinus[x][i] * cosinus[y][j];
+        }
+    }
+
+    
+    //printf("Aux coord i=%i j=%i, %f \n", i, j, (0.25)*fonctionC(i)*fonctionC(j)*somme);
+    
+    return (0.25)*fonctionC(i)*fonctionC(j)*somme;
+}
+
+float** precalculcos(int32_t largeur, int32_t hauteur){
+// On factorise le calcul des cosinus
+    int32_t maxi = 0;
+    if (longueur > largeur){
+        maxi = longueur;
+    }
+    else {
+        maxi = largeur;
+    }
+
+    float **cosinus = malloc(maxi*sizeof(float*));
+    for (size_t i = 0; i < maxi; i++) {
+        cosinus[i] = malloc(8*sizeof(float));
+    }
+    for (size_t i = 0; i < maxi; i++){
+        for (size_t x = 0; i < 8; i++){
+            cosinus[i][x] = cosf((2 *(float) x + 1) * ((float) i ) *(pi/((float) 16)));
+        }
+    }
+
+    return cosinus;
+}
+
+int** dtc(int32_t** t, float** cosinus)
+{
+    //printf(" %d \n", *(*(t+1)+2));
+    int** nouveau = malloc(8*sizeof(int*));
+    for (size_t i = 0; i < 8; i++) {
+      nouveau[i] = malloc(8*sizeof(int));
+    }
+    int i;
+    int j;
+    for (i=0; i < 8; i++)
+    {
+        for (j=0; j < 8; j++)
+        {
+            int entier = (int) transformation(t, i, j, cosinus);
+            float flottant = transformation(t, i, j, cosinus);
+            if (flottant > 0 && (int) (flottant + 0.0001) != entier){
+                nouveau[i][j] = entier + 1;
+                printf("ICI C EST SPECIAL VPLUS !!!!!, %f, %f, %i", flottant, flottant + 0.0001, entier);
+                printf("Nouvelle valeur %i", nouveau[i][j]);
+            }
+            else
+                {
+                nouveau[i][j] = entier;
+                }
+        }
+    }
+    affichage_dct(nouveau);
+    return nouveau;
+}
+/*
 float transformation(int32_t** s, int i, int j)
 {
     int x;
@@ -152,7 +224,7 @@ int** dtc(int32_t** t)
     affichage_dct(nouveau);
     return nouveau;
 }
-
+*/
 int32_t* quantification(int* t, int cc)
 {
     int32_t *nouveau = malloc(64*sizeof(int32_t*));
@@ -220,10 +292,10 @@ void affichage_dct(int** t)
     }
     printf("\n");
 }
-int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc)
+int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc, float** cosinus)
 {
     affichage_data(data);
-    return quantification(zigZag(dtc(data)), cc);
+    return quantification(zigZag(dtc(data, cosinus)), cc);
 }
 /*
 int main(void)
