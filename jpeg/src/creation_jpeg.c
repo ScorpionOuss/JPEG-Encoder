@@ -462,11 +462,11 @@ struct jpeg *creation_jpeg_couleur(int32_t *parametres)
     jpeg_set_sampling_factor(image,cc, i, 1);
     }
     cc=1;
-    jpeg_set_sampling_factor(image,cc, 1, 2);
-    jpeg_set_sampling_factor(image,cc, 2, 1);
+    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 1, 1);
     cc=2;
-    jpeg_set_sampling_factor(image,cc, 1, 2);
-    jpeg_set_sampling_factor(image,cc, 2, 1);
+    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 1, 1);
     uint8_t *qtables;
     qtables = &quantification_table_Y;
     jpeg_set_quantization_table(image, 0, qtables);
@@ -799,7 +799,7 @@ int main(int argc, char const *argv[])
     printf("hello 3 \n");
     jpeg_write_header(image);
     printf("hello 3 \n");
-    cosinus = precalculcos(entete*, *(entete+1));
+    cosinus = precalculcos(*entete, *(entete+1));
     for (int i=0; i<nbr_MCU;i++)
     {
     ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3, cosinus); 
@@ -829,6 +829,7 @@ int main(int argc, char const *argv[])
     hauteur += (8 - *(entete+1) % 8);
     }
 
+    cosinus = precalculcos(largeur, hauteur);
     
     /*DCT + ZigZagi*/
     nbr_MCU = (largeur/16)*(hauteur/8)*4;
@@ -841,7 +842,7 @@ int main(int argc, char const *argv[])
     for (int i=0; i<nbr_MCU;i++)
     {
     int tab[2] ={i%4-1, 0} ;
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), max(tab)); 
+    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), max(tab), cosinus); 
     /* Huffman  */
     gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
 
