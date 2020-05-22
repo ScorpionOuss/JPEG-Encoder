@@ -231,7 +231,7 @@ int32_t ***bonne_taille_couleur(int32_t ***data, int32_t* entete)
     for (size_t i = 0; i < bonne_ordonnee; i++) {
       
       data_new[i] = malloc(bonne_abscisse*sizeof(int32_t*));
-      for (size_t j = 0; j < bonne_ordonnee; j++)
+      for (size_t j = 0; j < bonne_abscisse; j++)
       {
         data_new[i][j] = malloc(3*sizeof(int32_t));
       }
