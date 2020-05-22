@@ -645,16 +645,16 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     for (int j1 = 0; j1<8; j1++)
     {
         //printf("pour i: %d et j: %d  avec hauteur %d et largeur %d; \n",i, j, hauteur, largeur);
-        if ((j+j1+8)<largeur)
+        if ((j+j1+8*3)<largeur-1)
         {
-        if (i%3==0)
+        if ((i*largeur*8+j)%3==0)
         {
 
         data[i1][j1] = ptr_sur_tab[i+i1][j+j1][i2];
         }
         else
         {
-        data[i1][j1] = (ptr_sur_tab[i+i1][j+j1][i2]+ptr_sur_tab[i+i1][j+j1+8][i2])/2;//*(*(ptr_sur_tab+i+i1)+j+j1);
+        data[i1][j1] = (ptr_sur_tab[i+i1][j+j1][i2]+ptr_sur_tab[i+i1][j+j1+8*3][i2])/2;//*(*(ptr_sur_tab+i+i1)+j+j1);
         }
         }
         else
@@ -664,6 +664,7 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     }
     }
     ptr_sur_tab_retour[i/8][3*j/8+i2] = data;
+    affichage_data2(data);
     }
     }
 
@@ -701,7 +702,17 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     return ptr_sur_tab_retour_ordonnee;
     }
     }
-
+void affichage_data2(int t[8][8])
+{
+    for (int i=0; i<8;i++)
+    {
+    for (int j=0; j<8; j++)
+    {
+        printf("%d ->",t[i][j]);
+    }
+    printf("\n");
+    }
+}
 
 int main(int argc, char const *argv[])
 {
@@ -847,7 +858,7 @@ int main(int argc, char const *argv[])
     gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
 
     exDC[max(tab)] = *ptr_tab_data;
-    printf("%d %d %d %d \n", exDC[0], exDC[1], exDC[2], max(tab));
+    //printf("%d %d %d %d \n", exDC[0], exDC[1], exDC[2], max(tab));
     }
     jpeg_write_footer(image);
     jpeg_destroy(image);
