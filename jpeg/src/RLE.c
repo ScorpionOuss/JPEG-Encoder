@@ -6,6 +6,9 @@
 #include "htables.h"
 #include  "bitstream.h"
 /*#include "magnitude.h"*/
+
+
+
 void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, struct jpeg* image, int cc)
 {
 	struct huff_table *pointeur_sur_htable;
@@ -19,32 +22,110 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
     pointeur_sur_htable = jpeg_get_huffman_table(image, 1,cc);
     for (int i = 1; i < taille_tab; i++)
     {
-    if (*(ptr_sur_tab + i) == 0)
+        if (*(ptr_sur_tab + i) == 0)
+        {
+            nbr_zero_prec++;
+        }
+        else
+        {
+            while (nbr_zero_prec >= 16)
+            {   
+                suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,-16, ptr_nbr_bit);
+                bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
+                nbr_zero_prec -= 16;
+            }
+        value = 16*nbr_zero_prec + calc_magnitude(*(ptr_sur_tab + i));
+        suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
+        bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
+        suite_bit_suivant = num_magnitude(*(ptr_sur_tab+i),calc_magnitude(*(ptr_sur_tab+i)));
+        bitstream_write_bits(stream, suite_bit_suivant, calc_magnitude(*(ptr_sur_tab+i)), false);
+        nbr_zero_prec=0; 
+        }
+    }
+
+    if (!(nbr_zero_prec==0))
     {
-    nbr_zero_prec++;
+        suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,0, ptr_nbr_bit);
+        bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, true);
+    }
+}
+
+
+
+int nbr_bit_binaire(int nbr)
+// Renvoie le nombre de bit nécéssaires à l'écriture du nombre nbr en base 2
+{
+    if ((nbr == 1)||(nbr==0))
+    // Cas de base
+    {
+        return (1);
+    }
+    else
+    // On calcule la puissance de 2 strictement supérieure à nbr
+    {
+        int t = 1;
+        int i = 0;
+        while (t <= nbr)
+        {
+            t = t*2;
+            i++;
+        }
+        return (i);
+    }
+}
+
+
+
+int32_t puissance(int32_t a, int32_t b)
+// renvoie a**b si b >= 0
+{
+    if (b == 0)
+    {
+        return 1;
     }
     else
     {
-    while (nbr_zero_prec >= 16)
-    {   
-    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,-16, ptr_nbr_bit);
-    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
-    nbr_zero_prec -= 16;
-    }
-    value = 16*nbr_zero_prec + calc_magnitude(*(ptr_sur_tab + i));
-    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,value, ptr_nbr_bit);
-    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, false);
-    suite_bit_suivant = num_magnitude(*(ptr_sur_tab+i),calc_magnitude(*(ptr_sur_tab+i)));
-    bitstream_write_bits(stream, suite_bit_suivant, calc_magnitude(*(ptr_sur_tab+i)), false);
-    nbr_zero_prec=0; 
-    }
-    }
-    if (!(nbr_zero_prec==0))
-    {
-    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable,0, ptr_nbr_bit);
-    bitstream_write_bits(stream, suite_bit_premier, *ptr_nbr_bit, true);
+        return a*puissance(a, b-1);
     }
 }
+
+
+
+int32_t calc_magnitude(int32_t entier)
+// renvoie la magnitude d'un entier
+{
+    int32_t p = 0;
+    int32_t n = 1;
+    while(n <= abs(entier))
+    {
+        p += 1;
+        n*= 2;
+    }
+
+    return p;
+}
+
+
+
+int32_t num_magnitude(int32_t entier, int32_t magnitude)
+// renvoie l'indice d'un entier dans sa magnitude
+{
+    if (entier >= 0)
+    {
+        return entier;
+    }
+    else
+    {
+        return puissance(2, magnitude) - abs(entier) -1;
+    }
+}
+
+
+
+
+
+/* FONCTION PRINCIPALE : GERE LA COMPRESSION DES DONNES */
+
 
 
 void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab, int exDC, int cc)
@@ -59,13 +140,14 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    uint32_t suite_bit_premier;
    uint32_t suite_bit_suivant;
    uint8_t value = 7;
+
    //bitstream_write_bits(stream,55551, 16, true);
    pointeur_sur_htable = jpeg_get_huffman_table(image, 0,cc);
    value = calc_magnitude(*ptr_tab-exDC);
    suite_bit_premier = huffman_table_get_path(pointeur_sur_htable, value, ptr_nbr_bit);
    suite_bit_suivant = num_magnitude(*ptr_tab-exDC, calc_magnitude(*ptr_tab-exDC));
-    
-    
+
+
    bitstream_write_bits(stream, suite_bit_premier,*ptr_nbr_bit, false);
    bitstream_write_bits(stream, suite_bit_suivant, value, false);
    /* Codage des AC*/
@@ -73,71 +155,4 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
    /* Ecriture fin de l'image */
 }
 
-int nbr_bit_binaire(int nbr)
-{
-    if ((nbr == 1)||(nbr==0))
-    {
-    return (1);
-    }
-    else
-    {
-    int t = 1;
-    int i = 0;
-    while (t<=nbr)
-    {
-        t = t*2;
-        i++;
-    }
-    return (i);
-    }
-}
-int32_t puissance(int32_t a, int32_t b)
-// renvoie a**b si b >= 0
-{
-    if (b == 0){
-        return 1;
-    }
-    else {
-        return a*puissance(a, b-1);
-    }
-}
 
-int32_t calc_magnitude(int32_t entier)
-// renvoie la magnitude d'un entier
-{
-    int32_t p = 0;
-    int32_t n = 1;
-    while(n <= abs(entier)){
-        p += 1;
-        n*= 2;
-    }
-
-    return p;
-}
-
-int32_t num_magnitude(int32_t entier, int32_t magnitude)
-// renvoie l'indice d'un entier dans sa magnitude
-{
-    if (entier >= 0){
-        return entier;
-    }
-    else {
-        return puissance(2, magnitude) - abs(entier) -1;
-    }
-}
-
-
-/*
-int main(void)
-{
-    int32_t t[7] = {14, -1, 1, 0,0,0,1};
-	int32_t* ptr_tab;
-    ptr_tab = &t;
-    struct bitstream stream;
-    stream = bitstream_create("test");
-    RLE(stream, ptr_tab, 7);
-    bitstream_flush(stream);
-    bitstream_destroy(stream);
-    return EXIT_SUCCESS;
-}
-*/
