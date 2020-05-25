@@ -31,21 +31,22 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
                 printf("\n \n \nBonjour et bienvenue dans l'aide.\n \n Trois options peuvent être utilisée sur la ligne de commande :\n \n");
                 printf("\"--help\" que vous venez d'utiliser vous fournit une assitance sur les options disponibles en ligne de commande\n");
                 printf("\"--outfile=nom_du_fichier_a_generer\" qui permet de choisir le nom de votre fichier .jpg de sortie\n");
-                printf("\"--sample=--sample=h1xv1,h2xv2,h3xv3\" qui permet de choisir les coefficients de sous-échantillonnage");
+                printf("\"--sample=--sample=h1xv1,h2xv2,h3xv3\" qui permet de choisir les coefficients de sous-échantillonnage\n");
+                printf("\"--dct=naive ou --dct=cos\" pour avoir la version dct optimisée avec précalcul des cos ou non\n");
                 printf("Toute entrée non standardisée selon ce qui précède renverra l'erreur \"Erreur de lecture ligne de commande\"\n \n \n");
             }
-            if (argv[i][2] == 100 && argv[i][3] == 116 && argv[i][4] == 99)
+            if (argv[i][2] == 100 && argv[i][3] == 99 && argv[i][4] == 116 && argv[i][5] == 61)
             {
                 erreur = 0;
-                if (argv[i][6] == 110 && argv[i][7] == 97 && argv[i][8] == 105 && argv[i][9] == 118 && argv[i][10] == 101 && argv[i][11] == 110) 
+                if (argv[i][6] == 110 && argv[i][7] == 97 && argv[i][8] == 105 && argv[i][9] == 118 && argv[i][10] == 101) 
                 {
                 options->dtc =0;
-                printf("Valeur de dtc changée : %i",options->dtc);
+                printf("Valeur de dtc changée : %i\n",options->dtc);
                 }
                 if (argv[i][6] == 99 && argv[i][7] == 111 && argv[i][8] == 115) 
                 {
                 options->dtc =1;
-                printf("Valeur de dtc changée : %i",options->dtc);
+                printf("Valeur de dtc changée : %i\n",options->dtc);
                 }
             }
             
@@ -125,6 +126,13 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
         }
     }
     return options;
+}
+
+
+int main(int argc, char const *argv[])
+{
+    lecture_ligne_cmd(argc, argv);
+    return EXIT_SUCCESS;
 }
 
 // Dans le main rajouter struct ligne_cmd* options = lecture_ligne_cmd(argc, argv);
