@@ -128,14 +128,3 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
     return options;
 }
 
-
-int main(int argc, char const *argv[])
-{
-    lecture_ligne_cmd(argc, argv);
-    return EXIT_SUCCESS;
-}
-
-// Dans le main rajouter struct ligne_cmd* options = lecture_ligne_cmd(argc, argv);
-// On a le nom du fichier a creer via options->nom
-// Le type de sample via options->sample
-// La valitidé de la lecture via options->validite

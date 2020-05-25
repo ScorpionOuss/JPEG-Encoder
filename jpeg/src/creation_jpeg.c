@@ -609,9 +609,9 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     
     for (int i2= 0; i2<3; i2++)
     {
-     int8_t** data = malloc(8*sizeof(int8_t*));
+     int32_t** data = malloc(8*sizeof(int32_t*));
     for (size_t i3 = 0; i3 < 8; i3++) {
-      data[i3] = malloc(8*sizeof(int8_t*));
+      data[i3] = malloc(8*sizeof(int32_t*));
       } 
     for (int i1 = 0; i1<8; i1++)
     {
@@ -920,13 +920,14 @@ void affichage_data2(int t[8][8])
 
 int main(int argc, char const *argv[])
 {
-        int32_t* entete = NULL; // entête du fichier pgm
+        int32_t* entete = NULL; // entête du fichie
         int echantillonage;
-        int dct=0;
+        int dct;
         int32_t*** ptr_sur_tab_MCU;
         int nbr_MCU;
+        
         struct ligne_cmd *commandes;
-        struct Entete *entete1;  // entête du fichier pgm
+        struct Entete *entete1;  // entête du fichier
         entete1 = recupe_entete(argv[1]);
         struct jpeg *image;
         struct bitstream *stream;
@@ -939,9 +940,10 @@ int main(int argc, char const *argv[])
         echantillonage = commandes->sample; 
         dct = commandes->dtc;
         /* récupération de l'image et création des données */
-        printf("Hello avant recup \n");
         entete = recuper_entete(argv[1]);
         //data = recuper_data(argv[1], entete);
+        
+        //CAS GRIS:
         if (entete1->type == 53)
         {
         int32_t** data = NULL;   // le contenu, les pixels
@@ -972,7 +974,7 @@ int main(int argc, char const *argv[])
         jpeg_write_header(image);
         for (int i=0; i<nbr_MCU;i++)
         {
-        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), 0); 
+        ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), 0); 
         /* Huffman  */
         gestion_compression(image, ptr_tab_data, taille, exDC, 0);
         exDC = *ptr_tab_data;
@@ -981,26 +983,24 @@ int main(int argc, char const *argv[])
         }
         jpeg_write_footer(image);
         jpeg_destroy(image);
-        /* fin*/
+        /* fin CAS GRIS*/
         }
-        else
-        {
+        else {
         /* Avec de la couleur !!!!! */
         int32_t*** data = NULL;   // le contenu, les pixels
         int32_t*** data_Y = NULL;   // le contenu, les pixels
         int32_t*** data_new = NULL;
         float** cosinus;
         int exDC[3] = {0, 0, 0};
-        printf("hello1\n");
         data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
         image = creation_jpeg_couleur(entete, echantillonage);
+        // On différencie les différents cas d'échantillonage
+        
         if (echantillonage == 0)
         {
         data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
         data_new = bonne_taille_couleur(data_Y, entete);
-        printf("hello 3 \n");
         ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete, 0); 
-        printf("hello 3 \n");
         int largeur = *entete;
         if (*entete % 8 != 0)
         {
@@ -1020,18 +1020,25 @@ int main(int argc, char const *argv[])
         int8_t taille = 64;
         printf("hello 3 \n");
         jpeg_write_header(image);
+        cosinus = precalculcos(largeur, hauteur);
         printf("hello 3 \n");
         for (int i=0; i<nbr_MCU;i++)
         {
-        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3); 
+        if (dct==1)
+        {
+        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3, cosinus);
+        }
+        if (dct==0)
+        {
+        ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), i%3);
+        } 
         /* Huffman  */
         gestion_compression(image, ptr_tab_data, taille, exDC[i%3],i%3);
         exDC[i%3] = *ptr_tab_data;
-        printf("%d %d %d \n", exDC[0], exDC[1], exDC[2]);
         }
         jpeg_write_footer(image);
         jpeg_destroy(image);
-        /* fin*/
+        /* fin cas echantillonage 1*/
         }
         if ((echantillonage == 2)||(echantillonage ==1))
         {
@@ -1078,16 +1085,6 @@ int main(int argc, char const *argv[])
         cosinus = precalculcos(largeur, hauteur);
         for (int i=0; i<nbr_MCU;i++)
         {
-        /*
-        if (echantillonage==1)
-        {
-        int tab[2]={i%4-1, 0};
-        }
-        if (echantillonage==2)
-        {
-        int tab[2]={i%6-3, 0};
-        }
-*/
         if (echantillonage==1)
         {
         tab[1]=i%4-1;
