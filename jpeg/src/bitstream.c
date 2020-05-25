@@ -3,7 +3,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+
 /* Module BITSREAM */
+
+
+
 
 // Type opaque représentant le flux d'octets à écrire dans
 //    le fichier JPEG de sortie (appelé bitstream dans le sujet). 
@@ -12,6 +17,7 @@ struct bitstream {
     int8_t limite; // nombre de bits libres restant dans le buffer (au plus 8)
     uint8_t data; // données ou buffer
 };
+
 
 
 // Retourne un nouveau bitstream prêt à écrire dans le fichier filename. 
@@ -28,7 +34,7 @@ struct bitstream *bitstream_create(const char *filename)
 }
 
 
- 
+
 int32_t puissance_bitstream(int32_t a, int32_t b)
 // renvoie a**b si b >= 0
 {
@@ -65,6 +71,26 @@ int nbr_bit_binaire_bitstream(int nbr)
         return (i);
     }
 }
+
+
+
+// Force l'exécution des écritures en attente sur le bitstream, s'il en existe.
+void bitstream_flush(struct bitstream *stream)
+{
+    // Ouverture du fichier en mode ecriture en fin de fichier et en binaire
+    FILE* fichier = fopen(stream->nom, "ab");
+
+    // Ecriture de l'octet stream->data
+    fputc(stream->data, fichier);
+
+    // On re-initialise les parametre pour le prochain appel
+    stream->data = 0;
+    stream->limite = 8;
+
+    // On ferme le fichier
+    fclose(fichier);
+}
+
 
 
 // Ecrit nb_bits bits dans le bitstream. La valeur portée par cet ensemble 
@@ -137,26 +163,10 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
 }
 
 
-// Force l'exécution des écritures en attente sur le bitstream, s'il en existe.
-void bitstream_flush(struct bitstream *stream)
-{
-    // Ouverture du fichier en mode ecriture en fin de fichier et en binaire
-    FILE* fichier = fopen(stream->nom, "ab");
-
-    // Ecriture de l'octet stream->data
-    fputc(stream->data, fichier);
-
-    // On re-initialise les parametre pour le prochain appel
-    stream->data = 0;
-    stream->limite = 8;
-
-    // On ferme le fichier
-    fclose(fichier);
-}
-
 
 // Détruit le bitstream passé en paramètre, en libérant la mémoire qui lui est associée. 
 void bitstream_destroy(struct bitstream *stream);
+
 
 
 /*
