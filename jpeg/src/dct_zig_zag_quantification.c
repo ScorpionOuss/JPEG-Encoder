@@ -112,7 +112,6 @@ float fonctionC(int32_t indice)
 
 
 
-
 float transformation(int32_t** s, int i, int j, float** cosinus)
 // Réalise le calcul de DCT proprement dit. La double boucle calcule la somme.
 // Le résultat total est fourni par return
@@ -136,8 +135,6 @@ float transformation(int32_t** s, int i, int j, float** cosinus)
 
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
-
-
 
 int** dtc(int32_t** t, float** cosinus)
 {
@@ -175,7 +172,6 @@ int** dtc(int32_t** t, float** cosinus)
 }
 
 
-
 float** precalculcos(int32_t largeur, int32_t longueur){
 // On factorise le calcul des cosinus
     int32_t maxi = 0;
@@ -206,8 +202,7 @@ float** precalculcos(int32_t largeur, int32_t longueur){
 
 
 
-/*
-float transformation(int32_t** s, int i, int j)
+float transformation_naive(int32_t** s, int i, int j)
 {
     int x;
     int y;
@@ -228,8 +223,7 @@ float transformation(int32_t** s, int i, int j)
 
 
 int t[8][8] = {0};
-
-int** dtc(int32_t** t)
+int** dtc_naif(int32_t** t)
 {
     //printf(" %d \n", *(*(t+1)+2));
     int** nouveau = malloc(8*sizeof(int*));
@@ -242,8 +236,8 @@ int** dtc(int32_t** t)
     {
         for (j=0; j < 8; j++)
         {
-            int entier = (int) transformation(t, i, j);
-            float flottant = transformation(t, i, j);
+            int entier = (int) transformation_naive(t, i, j);
+            float flottant = transformation_naive(t, i, j);
             if (flottant > 0 && (int) (flottant + 0.0001) != entier){
                 nouveau[i][j] = entier + 1;
                 printf("ICI C EST SPECIAL VPLUS !!!!!, %f, %f, %i", flottant, flottant + 0.0001, entier);
@@ -258,8 +252,6 @@ int** dtc(int32_t** t)
     affichage_dct(nouveau);
     return nouveau;
 }
-*/
-
 
 
 int32_t* quantification(int* t, int cc)
@@ -373,7 +365,11 @@ void affichage_data(int** t)
 /*FONCTION PRINCIPALE : GESTION ORDRE OPERATOIRE */
 
 
+int32_t* operations_naives(int32_t** data, int cc) //NOM DE LA FONCTION A CHANGER
+{
 
+    return quantification(zigZag(dtc_naif(data)), cc);
+}
 int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc, float** cosinus) //NOM DE LA FONCTION A CHANGER
 //Fonction qui a partir d'un bloc 8x8 réalise successivement les opérations :
 //dct puis zig-zag puis quantification

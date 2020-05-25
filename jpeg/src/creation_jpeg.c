@@ -1,11 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <jpeg_writer.h>
-#include <RLE.h>
 #include <math.h>
 #include "htables.h"
 #include "qtables.h"
 #include "huffman.h"
+#include "ligne_de_cmd.h"
 #define pi 3.1415927
 /* partie recupération des datas */
 // structure entete
@@ -430,7 +429,7 @@ int32_t *recuper_entete(const char* file_pgm)
 }
 
 
-struct jpeg *creation_jpeg_couleur(int32_t *parametres)
+struct jpeg *creation_jpeg_couleur(int32_t *parametres, int echantillonage)
 //fonction qui cree un fichier jpeg : parametres est le tableau qui contient les infos de recup_data
 {
     struct jpeg *image = jpeg_create();
@@ -457,22 +456,35 @@ struct jpeg *creation_jpeg_couleur(int32_t *parametres)
     }
     }
     int cc = 0;
-    for (int i=0; i<2; i++)
+    if (echantillonage == 2)
     {
-    jpeg_set_sampling_factor(image,cc, i, 1);
+    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 1, 2);
+    }
+    if (echantillonage==1)
+    {
+    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 1, 1);
+    }
+    if (echantillonage ==0)
+    {
+    jpeg_set_sampling_factor(image,cc, 0, 1);
+    jpeg_set_sampling_factor(image,cc, 1, 1);
     }
     cc=1;
-    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 0, 1);
     jpeg_set_sampling_factor(image,cc, 1, 1);
     cc=2;
-    jpeg_set_sampling_factor(image,cc, 0, 2);
+    jpeg_set_sampling_factor(image,cc, 0, 1);
     jpeg_set_sampling_factor(image,cc, 1, 1);
+
     uint8_t *qtables;
     qtables = &quantification_table_Y;
     jpeg_set_quantization_table(image, 0, qtables);
     qtables = &quantification_table_CbCr;
     jpeg_set_quantization_table(image, 1, qtables);
     jpeg_set_quantization_table(image, 2, qtables);
+    
     return image;
 }
 
@@ -500,10 +512,15 @@ struct jpeg *creation_jpeg(int32_t *parametres)
     //htable = jpeg_get_huffman_table(image, acdc, cc);
     jpeg_set_huffman_table(image, acdc, cc, htable);
     }
-    for (int i=0; i<2; i++)
-    {
-    jpeg_set_sampling_factor(image,cc, i, 1);
-    }
+    cc=0;
+    jpeg_set_sampling_factor(image,cc, 0, 1);
+    jpeg_set_sampling_factor(image,cc, 1, 1);  
+    cc=1;
+    jpeg_set_sampling_factor(image,cc, 0, 1);
+    jpeg_set_sampling_factor(image,cc, 1, 1);
+    cc=2;
+    jpeg_set_sampling_factor(image,cc, 0, 1);
+    jpeg_set_sampling_factor(image,cc, 1, 1);    
     uint8_t *qtables;
     qtables = &quantification_table_Y;
     jpeg_set_quantization_table(image, cc, qtables);
@@ -579,9 +596,9 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     hauteur += (8 - *(entete+1) % 8);
     }
  
-    int32_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(int32_t***));
+    uint8_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(uint8_t***));
     for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) {
-      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(int32_t**));
+      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(uint8_t**));
     } 
     for (int i = 0; i<hauteur;i=i+8)
     {
@@ -592,9 +609,9 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     
     for (int i2= 0; i2<3; i2++)
     {
-     int32_t** data = malloc(8*sizeof(int32_t*));
+     int8_t** data = malloc(8*sizeof(int8_t*));
     for (size_t i3 = 0; i3 < 8; i3++) {
-      data[i3] = malloc(8*sizeof(int32_t*));
+      data[i3] = malloc(8*sizeof(int8_t*));
       } 
     for (int i1 = 0; i1<8; i1++)
     {
@@ -607,8 +624,15 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     }
     }
     }
+    uint8_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/8)*((int) hauteur / 8)*3*sizeof(int32_t**));
+    for (int i=0; i<(3*(int) (largeur/8) )*((int) hauteur / 8);i++)
+    {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i/(3*largeur/8)][(i)%(3*largeur/8)];
     }
-    else
+    return ptr_sur_tab_retour_ordonnee;
+    }
+
+    if (echantillonage == 1)
     {
     // On calcule les bonnes dimensions avec un echantillonage
  
@@ -623,10 +647,13 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     {
     hauteur += (8 - *(entete+1) % 8);
     }
-    int32_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(int32_t***));
+    uint8_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(uint8_t***));
     for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) {
-      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(int32_t**));
+      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(uint8_t**));
     } 
+    uint8_t R, G, B;
+    uint8_t Rs, Gs, Bs;
+    int compteur =0;
     for (int i = 0; i<hauteur;i=i+8)
     {
     for (int j=0; j<largeur; j=j+8)
@@ -644,34 +671,59 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
     {
     for (int j1 = 0; j1<8; j1++)
     {
+        R = ptr_sur_tab[i1+i][j+j1][0];
+        G = ptr_sur_tab[i1+i][j+j1][1];
+        B = ptr_sur_tab[i1+i][j+j1][2];
+
         //printf("pour i: %d et j: %d  avec hauteur %d et largeur %d; \n",i, j, hauteur, largeur);
         if ((j+j1+8*3)<largeur-1)
         {
-        if ((i*largeur*8+j)%3==0)
+        Rs = ptr_sur_tab[i1+i][j+8*3+j1][0];
+        Gs = ptr_sur_tab[i1+i][j+8*3+j1][1];
+        Bs = ptr_sur_tab[i1+i][j+j1+8*3][2];
+        if ((compteur)%3==0)
         {
-
-        data[i1][j1] = ptr_sur_tab[i+i1][j+j1][i2];
+        data[i1][j1] = (int) round(((float) G) *0.587+((float)B)*0.299+0.114*((float) R));
+        printf("data %d", data[i1][j1]);
+        }
+        if (compteur%3==1)
+        {
+        data[i1][j1] = (int) round(0.5*((float) B+(float)Bs)/2+-0.3313*((float)G+(float)Gs)/2-((float) R+(float)Rs)*0.1687/2+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        if (compteur%3==2)
+        {
+        data[i1][j1] = (int) round(-0.0813*((float) B+(float)Bs)/2+-0.4187*((float)G+(float)Gs)/2+((float) R+(float)Rs)*0.5/2+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
         }
         else
         {
-        data[i1][j1] = (ptr_sur_tab[i+i1][j+j1][i2]+ptr_sur_tab[i+i1][j+j1+8*3][i2])/2;//*(*(ptr_sur_tab+i+i1)+j+j1);
-        }
-        }
-        else
+        if ((compteur)%3==0)
         {
-        data[i1][j1] = ptr_sur_tab[i+i1][j+j1][i2];//*(*(ptr_sur_tab+i+i1)+j+j1);
+        data[i1][j1] = (int) round(((float) G) *0.587+((float)B)*0.299+0.114*((float) R));
+        }
+        if ((compteur)%3==1)
+        {
+        data[i1][j1] = (int) round(0.5*((float) B)/2+-0.3313*((float)G)/2-((float) R)*0.1687/2+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        if ((compteur)%3==2)
+        {
+        data[i1][j1] = (int) round(-0.0813*((float) B)/2+-0.4187*((float)G)/2+((float) R)*0.5/2+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
         }
     }
     }
     ptr_sur_tab_retour[i/8][3*j/8+i2] = data;
-    affichage_data2(data);
+    compteur++;
+    //affichage_data2(data);
+    affichage_data2(ptr_sur_tab[i][j]);
     }
     }
 
+    compteur=0;
     }
     printf("suite ZigZag \n");    
     int j = 0;
-    int32_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/16 )*((int) hauteur / 8)*4 *sizeof(int32_t**));
+    int32_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/16 )*((int) hauteur / 8)*4 *sizeof(uint8_t**));
     for (int i=0; i<4*((int) (largeur/16) )*((int) hauteur / 8);i++)
     {
         if (i%4==0)
@@ -701,6 +753,158 @@ int32_t ***zigzag_bloc_couleur(int32_t*** ptr_sur_tab, int* entete, int echantil
 
     return ptr_sur_tab_retour_ordonnee;
     }
+    
+    
+    if (echantillonage==2)
+    {
+    // On calcule les bonnes dimensions avec un echantillonage 2, horizontale et verticale
+ 
+    int largeur = *entete;
+    if (*entete % 16 != 0)
+    {
+    largeur += 16 - *entete % 16;
+    }
+    
+    int hauteur = *(entete+1);
+    if (*(entete+1) % 16 != 0)
+    {
+    hauteur += (16 - *(entete+1) % 16);
+    }
+    uint8_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(uint8_t***));
+    for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) {
+      ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(uint8_t**));
+    } 
+    uint8_t R, G, B;
+    uint8_t Rs1, Gs1, Bs1;
+    uint8_t Rs2, Gs2, Bs2;
+    uint8_t Rs3, Gs3, Bs3;
+    int compteur =0;
+    for (int i = 0; i<hauteur;i=i+8)
+    {
+    for (int j=0; j<largeur; j=j+8)
+    {
+    
+
+    
+    for (int i2= 0; i2<3; i2++)
+    {
+    int32_t** data = malloc(8*sizeof(int32_t*));
+    for (size_t i3 = 0; i3 < 8; i3++) {
+      data[i3] = malloc(8*sizeof(int32_t));
+      } 
+    for (int i1 = 0; i1<8; i1++)
+    {
+    for (int j1 = 0; j1<8; j1++)
+    {
+        R = ptr_sur_tab[i1+i][j+j1][0];
+        G = ptr_sur_tab[i1+i][j+j1][1];
+        B = ptr_sur_tab[i1+i][j+j1][2];
+        //printf("pour i: %d et j: %d  avec hauteur %d et largeur %d; \n",i, j, hauteur, largeur);
+        if (((j+j1+8*3)<largeur-1)&&((i+i1+8)<hauteur-1))
+        {
+        Rs1 = ptr_sur_tab[i1+i][j+8*3+j1][0];
+        Gs1 = ptr_sur_tab[i1+i][j+8*3+j1][1];
+        Bs1 = ptr_sur_tab[i1+i][j+j1+8*3][2];
+        Rs2 = ptr_sur_tab[i1+i+8][j+j1][0];
+        Gs2 = ptr_sur_tab[i1+i+8][j+j1][1];
+        Bs2 = ptr_sur_tab[i1+i+8][j+j1][2];
+        Rs3 = ptr_sur_tab[i1+i+8][j+8*3+j1][0];
+        Gs3 = ptr_sur_tab[i1+i+8][j+8*3+j1][1];
+        Bs3 = ptr_sur_tab[i1+i+8][j+j1+8*3][2];
+        if ((i2)%3==0)
+        {
+        data[i1][j1] = (int) round(((float) G) *0.587+((float)B)*0.299+0.114*((float) R));
+        }
+        R = (uint8_t) R/4+Rs1/4+Rs2/4+Rs3/4;
+        G = (uint8_t) G/4+Gs1/4+Gs2/4+Gs3/4;
+        B =(uint8_t) B/4+Bs1/4+Bs2/4+Bs3/4;
+
+        if (i2%3==1)
+        {
+        data[i1][j1] = (int) round(0.5*((float) B)-0.3313*((float)G)-((float) R)*0.1687+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        if (i2%3==2)
+        {
+        data[i1][j1] = (int) round(-0.0813*((float) B)+-0.4187*((float)G)+((float) R)*0.5+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        }
+        else
+        {
+        if ((i2)%3==0)
+        {
+        data[i1][j1] = (int) round(((float) G) *0.587+((float)B)*0.299+0.114*((float) R));
+        }
+        if ((i2)%3==1)
+        {
+        data[i1][j1] = (int) round(0.5*((float) B)+-0.3313*((float)G)-((float) R)*0.1687+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        if ((i2)%3==2)
+        {
+        data[i1][j1] = (int) round(-0.0813*((float) B)+-0.4187*((float)G)+((float) R)*0.5+128);//*(*(ptr_sur_tab+i+i1)+j+j1);
+        }
+        }
+    }
+    }
+    ptr_sur_tab_retour[i/8][3*j/8+i2] = data;
+    compteur++;
+    affichage_data2(ptr_sur_tab_retour[i/8][3*j/8+i2]);
+    }
+    }
+    compteur = 0;
+    }
+    int j = 0;
+    uint8_t ***ptr_sur_tab_retour_ordonnee = malloc(((int) largeur/16 )*((int) hauteur / 16)*6*sizeof(uint8_t**));
+    for (int i=0; i<6*((int) (largeur/16) )*((int) hauteur / 16);i++)
+    {
+        if (((j/(3*largeur/8)))%2==1)
+        {
+        j+=3*largeur/8;
+        }
+        if (i%6==0)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)][(j)%(3*largeur/8)];
+        j=j+3;
+        }
+        if (i%6==1)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)][(j)%(3*largeur/8)];
+        j=j-3;
+        }
+        if (i%6==2)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)+1][(j)%(3*largeur/8)];
+        j=j+3;
+        }
+        if (i%6==3)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)+1][(j)%(3*largeur/8)];
+        j=j-2;
+        }
+        if (i%6==4)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)][(j)%(3*largeur/8)];
+        j++;
+        }
+        if (i%6==5)
+        {
+        ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[j/(3*largeur/8)][(j)%(3*largeur/8)];
+        j=j+4;
+        }
+     affichage_data2(ptr_sur_tab_retour_ordonnee[i]);   
+     printf("fin echantillonage horizontale et verticald %d \n", i);
+    }
+  /*
+    for (int i=0; i<largeur; i=i+8)
+    {
+    for (int j=0; j< hauteur; j=j+8)
+    {
+    free(ptr_sur_tab_retour[i][j]);
+    }
+    free(ptr_sur_tab_retour[i]);
+    }
+*/
+    return ptr_sur_tab_retour_ordonnee;
+    }
     }
 void affichage_data2(int t[8][8])
 {
@@ -716,157 +920,198 @@ void affichage_data2(int t[8][8])
 
 int main(int argc, char const *argv[])
 {
-    int32_t* entete = NULL; // entête du fichier pgm
-    int echantillonage = 1;
-    int32_t*** ptr_sur_tab_MCU;
-    int nbr_MCU;
-    struct Entete *entete1;  // entête du fichier pgm
-    entete1 = recupe_entete(argv[1]);
-    struct jpeg *image;
-    struct bitstream *stream;
-    /* récupération de l'image et création des données */
-    printf("Hello avant recup \n");
-    entete = recuper_entete(argv[1]);
-    //data = recuper_data(argv[1], entete);
-    if (entete1->type == 53)
-    {
-    int32_t** data = NULL;   // le contenu, les pixels
-    int32_t** data_new = NULL;
-    int exDC = 0;
-    data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
-    image = creation_jpeg(entete);
-    data_new = bonne_taille(data, entete);
-    ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
-    int largeur = *entete;
-    printf("hello \n");
-    if (*entete % 8 != 0)
-    {
-    largeur += 8 - *entete % 8;
-    }
-    
-    int hauteur = *(entete+1);
-    if (*(entete+1) % 8 != 0)
-    {
-    hauteur += (8 - *(entete+1) % 8);
-    }
+        int32_t* entete = NULL; // entête du fichier pgm
+        int echantillonage;
+        int dct=0;
+        int32_t*** ptr_sur_tab_MCU;
+        int nbr_MCU;
+        struct ligne_cmd *commandes;
+        struct Entete *entete1;  // entête du fichier pgm
+        entete1 = recupe_entete(argv[1]);
+        struct jpeg *image;
+        struct bitstream *stream;
+        /* recupération des commandes */
+        commandes = lecture_ligne_cmd(argc, argv); 
+        if (commandes->validite ==0)
+        {
+        return 0;
+        }
+        echantillonage = commandes->sample; 
+        dct = commandes->dtc;
+        /* récupération de l'image et création des données */
+        printf("Hello avant recup \n");
+        entete = recuper_entete(argv[1]);
+        //data = recuper_data(argv[1], entete);
+        if (entete1->type == 53)
+        {
+        int32_t** data = NULL;   // le contenu, les pixels
+        int32_t** data_new = NULL;
+        int exDC = 0;
+        data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
+        image = creation_jpeg(entete);
+        data_new = bonne_taille(data, entete);
+        ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
+        int largeur = *entete;
+        printf("hello \n");
+        if (*entete % 8 != 0)
+        {
+        largeur += 8 - *entete % 8;
+        }
+        
+        int hauteur = *(entete+1);
+        if (*(entete+1) % 8 != 0)
+        {
+        hauteur += (8 - *(entete+1) % 8);
+        }
 
-    
-    /*DCT + ZigZagi*/
-    nbr_MCU = (largeur/8)*(hauteur/8);
-    int32_t* ptr_tab_data; 
-    int8_t taille = 64;
-    jpeg_write_header(image);
-    for (int i=0; i<nbr_MCU;i++)
-    {
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), 0); 
-    /* Huffman  */
-    gestion_compression(image, ptr_tab_data, taille, exDC, 0);
-    exDC = *ptr_tab_data;
+        
+        /*DCT + ZigZagi*/
+        nbr_MCU = (largeur/8)*(hauteur/8);
+        int32_t* ptr_tab_data; 
+        int8_t taille = 64;
+        jpeg_write_header(image);
+        for (int i=0; i<nbr_MCU;i++)
+        {
+        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), 0); 
+        /* Huffman  */
+        gestion_compression(image, ptr_tab_data, taille, exDC, 0);
+        exDC = *ptr_tab_data;
 
-    printf("%d \n", hauteur);
-    }
-    jpeg_write_footer(image);
-    jpeg_destroy(image);
-    /* fin*/
-    }
-    else
-    {
-    /* Avec de la couleur !!!!! */
-    int32_t*** data = NULL;   // le contenu, les pixels
-    int32_t*** data_Y = NULL;   // le contenu, les pixels
-    int32_t*** data_new = NULL;
-    float** cosinus;
-    int exDC[3] = {0, 0, 0};
-    printf("hello1\n");
-    data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
-    printf("hello1\n");
-    image = creation_jpeg_couleur(entete);
-    printf("hello1\n");
-    data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
-    printf("hello1\n");
-    if (echantillonage == 0)
-    {
-    data_new = bonne_taille_couleur(data_Y, entete);
-    printf("hello 3 \n");
-    ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete, 0); 
-    printf("hello 3 \n");
-    int largeur = *entete;
-    if (*entete % 8 != 0)
-    {
-    largeur += 8 - *entete % 8;
-    }
-    
-    int hauteur = *(entete+1);
-    if (*(entete+1) % 8 != 0)
-    {
-    hauteur += (8 - *(entete+1) % 8);
-    }
+        printf("%d \n", hauteur);
+        }
+        jpeg_write_footer(image);
+        jpeg_destroy(image);
+        /* fin*/
+        }
+        else
+        {
+        /* Avec de la couleur !!!!! */
+        int32_t*** data = NULL;   // le contenu, les pixels
+        int32_t*** data_Y = NULL;   // le contenu, les pixels
+        int32_t*** data_new = NULL;
+        float** cosinus;
+        int exDC[3] = {0, 0, 0};
+        printf("hello1\n");
+        data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
+        image = creation_jpeg_couleur(entete, echantillonage);
+        if (echantillonage == 0)
+        {
+        data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
+        data_new = bonne_taille_couleur(data_Y, entete);
+        printf("hello 3 \n");
+        ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete, 0); 
+        printf("hello 3 \n");
+        int largeur = *entete;
+        if (*entete % 8 != 0)
+        {
+        largeur += 8 - *entete % 8;
+        }
+        
+        int hauteur = *(entete+1);
+        if (*(entete+1) % 8 != 0)
+        {
+        hauteur += (8 - *(entete+1) % 8);
+        }
 
-    
-    /*DCT + ZigZagi*/
-    nbr_MCU = (largeur/8)*(hauteur/8)*3;
-    int32_t* ptr_tab_data; 
-    int8_t taille = 64;
-    printf("hello 3 \n");
-    jpeg_write_header(image);
-    printf("hello 3 \n");
-    cosinus = precalculcos(*entete, *(entete+1));
-    for (int i=0; i<nbr_MCU;i++)
-    {
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3, cosinus); 
-    /* Huffman  */
-    gestion_compression(image, ptr_tab_data, taille, exDC[i%3],i%3);
-    exDC[i%3] = *ptr_tab_data;
-    printf("%d %d %d \n", exDC[0], exDC[1], exDC[2]);
-    }
-    jpeg_write_footer(image);
-    jpeg_destroy(image);
-    /* fin*/
-    }
-    else
-    {
-    data_new = bonne_taille_couleur_ssechantillonnage(data_Y, entete, 1);
-    ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete,1); 
-    printf("hello 3 \n");
-    int largeur = *entete;
-    if (*entete % 16 != 0)
-    {
-    largeur += 16 - *entete % 16;
-    }
-    
-    int hauteur = *(entete+1);
-    if (*(entete+1) % 8 != 0)
-    {
-    hauteur += (8 - *(entete+1) % 8);
-    }
+        
+        /*DCT + ZigZagi*/
+        nbr_MCU = (largeur/8)*(hauteur/8)*3;
+        int32_t* ptr_tab_data; 
+        int8_t taille = 64;
+        printf("hello 3 \n");
+        jpeg_write_header(image);
+        printf("hello 3 \n");
+        for (int i=0; i<nbr_MCU;i++)
+        {
+        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), i%3); 
+        /* Huffman  */
+        gestion_compression(image, ptr_tab_data, taille, exDC[i%3],i%3);
+        exDC[i%3] = *ptr_tab_data;
+        printf("%d %d %d \n", exDC[0], exDC[1], exDC[2]);
+        }
+        jpeg_write_footer(image);
+        jpeg_destroy(image);
+        /* fin*/
+        }
+        if ((echantillonage == 2)||(echantillonage ==1))
+        {
+        //cas echantillonage 4:4:4 ou 4:2:0
+        data_new = bonne_taille_couleur_ssechantillonnage(data, entete, echantillonage);
+        ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete,echantillonage); 
+        int na, no;
+        if (echantillonage==1)
+        {
+        na = 16;
+        no = 8;
+        }
+        if (echantillonage==2)
+        {
+        na = 16;
+        no = 16;
+        }
+        int largeur = *entete;
+        if (*entete % na != 0)
+        {
+        largeur += na - *entete % na;
+        }
+        
+        int hauteur = *(entete+1);
+        if (*(entete+1) % no != 0)
+        {
+        hauteur += (no - *(entete+1) % no);
+        }
 
-    cosinus = precalculcos(largeur, hauteur);
-    
-    /*DCT + ZigZagi*/
-    nbr_MCU = (largeur/16)*(hauteur/8)*4;
-    int32_t* ptr_tab_data; 
-    int8_t taille = 64;
-    printf("hello 3 \n");
-    jpeg_write_header(image);
-    printf("hello 3 \n");
-    
-    for (int i=0; i<nbr_MCU;i++)
-    {
-    int tab[2] ={i%4-1, 0} ;
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), max(tab), cosinus); 
-    /* Huffman  */
-    gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
-
-    exDC[max(tab)] = *ptr_tab_data;
-    //printf("%d %d %d %d \n", exDC[0], exDC[1], exDC[2], max(tab));
+        
+        /*DCT + ZigZagi*/
+        if (echantillonage == 1)
+        {
+            nbr_MCU = (largeur/16)*(hauteur/8)*4;
+        }
+        if (echantillonage ==2)
+        {
+            nbr_MCU = (largeur/16)*(hauteur/16)*6;
+        }
+        int* ptr_tab_data; 
+        int8_t taille = 64;
+        int tab[2]={0, 0};
+        jpeg_write_header(image);
+        cosinus = precalculcos(largeur, hauteur);
+        for (int i=0; i<nbr_MCU;i++)
+        {
+        /*
+        if (echantillonage==1)
+        {
+        int tab[2]={i%4-1, 0};
+        }
+        if (echantillonage==2)
+        {
+        int tab[2]={i%6-3, 0};
+        }
+*/
+        if (echantillonage==1)
+        {
+        tab[1]=i%4-1;
+        }
+        if (echantillonage==2)
+        {
+        tab[1]=i%6-3;
+        }
+        if (dct==1)
+        {
+        ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), max(tab), cosinus);
+        }
+        if (dct==0)
+        {
+        ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), max(tab));
+        }
+        /* Huffman  */
+        gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
+        exDC[max(tab)] = *ptr_tab_data;
+        }
+        jpeg_write_footer(image);
+        jpeg_destroy(image);
+        /* fin*/
+        }
+        };
+        return 0;
     }
-    jpeg_write_footer(image);
-    jpeg_destroy(image);
-    /* fin*/
-
-
-    }
-    };
-
-    return 0;
-}

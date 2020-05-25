@@ -1,16 +1,22 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <stdint.h>
 struct ligne_cmd {
     int8_t validite; // 1 si valide, 0 sinon
     char* nom;        // nom du fichier
     int8_t sample;    // version sous echantillonnage 0, 1, 2
+    int8_t dtc; //version de dtc
 };
 
-struct ligne_cmd* lecture_ligne_cmd(int argc, char *argv[])
+struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
 {
     struct ligne_cmd* options = malloc(sizeof(struct ligne_cmd*));
     int i;
 
     // Valeur des attribus par défaut
-    options->sample = -1;
+    options->sample = 0;
+    options->dtc = 0;
     options->nom = NULL;
     options->validite = 1;
 
@@ -28,6 +34,21 @@ struct ligne_cmd* lecture_ligne_cmd(int argc, char *argv[])
                 printf("\"--sample=--sample=h1xv1,h2xv2,h3xv3\" qui permet de choisir les coefficients de sous-échantillonnage");
                 printf("Toute entrée non standardisée selon ce qui précède renverra l'erreur \"Erreur de lecture ligne de commande\"\n \n \n");
             }
+            if (argv[i][2] == 100 && argv[i][3] == 116 && argv[i][4] == 99)
+            {
+                erreur = 0;
+                if (argv[i][6] == 110 && argv[i][7] == 97 && argv[i][8] == 105 && argv[i][9] == 118 && argv[i][10] == 101 && argv[i][11] == 110) 
+                {
+                options->dtc =0;
+                printf("Valeur de dtc changée : %i",options->dtc);
+                }
+                if (argv[i][6] == 99 && argv[i][7] == 111 && argv[i][8] == 115) 
+                {
+                options->dtc =1;
+                printf("Valeur de dtc changée : %i",options->dtc);
+                }
+            }
+            
             if (argv[i][2] == 111 && argv[i][3] == 117 && argv[i][4] == 116 && argv[i][5] == 102 && argv[i][6] == 105 && argv[i][7] == 108 && argv[i][8] == 101 && argv[i][9] == 61)
             {
                 erreur = 0;
