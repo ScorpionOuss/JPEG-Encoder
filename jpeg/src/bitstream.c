@@ -2,13 +2,14 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+
 /* Module BITSREAM */
 
 // Type opaque représentant le flux d'octets à écrire dans
 //    le fichier JPEG de sortie (appelé bitstream dans le sujet). 
 struct bitstream {
     char* nom; // nom du fichier dans lequel on écrit
-    int8_t limite; // nombre de bit restant dans le buffer (au plus 8)
+    int8_t limite; // nombre de bits libres restant dans le buffer (au plus 8)
     uint8_t data; // données ou buffer
 };
 
@@ -16,10 +17,13 @@ struct bitstream {
 // Retourne un nouveau bitstream prêt à écrire dans le fichier filename. 
 struct bitstream *bitstream_create(const char *filename)
 {
+    // Allocation mémoire de la source
     struct bitstream* stream = malloc(sizeof(struct bitstream*));
+    // On remplit ses attributs
     stream->nom = filename;
     stream->data = 0;
     stream->limite = 8;
+
     return stream;
 }
 
@@ -69,27 +73,34 @@ int nbr_bit_binaire_bitstream(int nbr)
 //"Ecriture dans le flux JPEG -> Byte stuffing" du sujet). 
 void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_bits, bool is_marker)
 {
-    // On les mets dans la bitstream
-    // D'abord on s'occupe des 0
+    // D'abord on s'occupe des 0 inutile devant s'il y en a
+    // On regarde donc si on doit écrire value sur le nombre de bit qui sont necessaires
+
     int8_t nb_bit_reel = nbr_bit_binaire_bitstream(value);
     int32_t difference = nb_bits - nb_bit_reel;
+
     while (stream->limite >0 && nb_bits != 0)
+    // On procede étape par étape : on va charger un bit a la fois dans la bitstream
+    // tant que le buffer n'est pas plein ou value est épuisé
     {
-        printf("Debut d'un tour\n");
-        printf("nb_bits = %i\n", nb_bits);
         if (difference >0)
+        // D'abord, les 0 inutiles devant
         {
-            //printf("Premier if");
             nb_bits -= 1;
             stream->limite -=1;
             difference -= 1;
         }
         else
         {
+            // Désormais, on s'interesse à des bit significatifs
+            // On veut savoir l'écriture en binaire de value
+            //des bits de poids forts vers les bits de poids faibles
+            //Donc on le compare à la puissance entière de 2 correspondant
+            //au bit courant (déterminé par limite)
             int32_t power = puissance_bitstream(2, nb_bits-1);
             if(value >= power)
             {
-                //printf("Cas où 1");
+                // Dans ce cas on met un 1
                 value -= power;
                 stream->limite -= 1;
                 stream->data += 1 << stream->limite;
@@ -97,57 +108,49 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
             }
             else
             {
-                //printf("Cas où 0");
+                // Dans ce cas on met un 0 (valeur par défaut)
                 stream->limite -= 1;
                 nb_bits -= 1;
             }
         }
     }
-    printf("Etat du buffer %i\n", stream->data);
-    printf("Etat de la limite %i\n", stream->limite);
+    // Deux possibilités à ce stade : soit on a rempli le buffer et il faut le décharger (flush)
+    // soit on a fini d'écrire dans le flux et on attend le suivant (fin de la fonction)
+
     if (stream->limite == 0)
+    // Ici on va décharger car le buffer est plein
     {
-        bitstream_flush(stream);
-        bitstream_write_bits(stream, value, nb_bits, false);
-    }
-}
-    /*
-    // Decomposition en binaire
-    int32_t reste = value;
-    for(int j=nb_bit_reel-1; j>=0; j--)
-    {
-        int32_t power = puissance_bitstream(2, j);
-        if (power <= reste)
+        if (stream->data == 255 && is_marker == false)
+        // Si on s'apprête à décharger ff et que ce n'est pas un marqueur,
+        // il faut mettre le 00 (byte stuffing)
         {
-            stream->data[stream->limite + abs(j - (nb_bit_reel - 1))] = 1;
-            reste -= power;
+            bitstream_flush(stream);
+            bitstream_write_bits(stream, 0, 8, false);
         }
         else
         {
-            stream->data[stream->limite + abs(j - (nb_bit_reel - 1))] = 0;
+            bitstream_flush(stream);
         }
+        // On finit alors ce que l'on devait écrire dans le buffer
+        bitstream_write_bits(stream, value, nb_bits, false);
     }
-    stream->limite += nb_bit_reel;
-    printf("\nLa limite est à %i\n", stream->limite);
-    affichage_bitstream(stream);
-
-    //if (stream->limite == 0){}
-//    FILE* fichier = fopen("test.jpg", "a+");
-//    fputc(0, fichier);
-//    fputc(0, fichier);
-//    fputc(10, fichier);
-//    fputc(255, fichier);
-//    fclose(fichier);
 }
-*/
+
+
 // Force l'exécution des écritures en attente sur le bitstream, s'il en existe.
 void bitstream_flush(struct bitstream *stream)
 {
-    FILE* fichier = fopen("test.jpg", "ab");
-    printf("ECRITURE de %i\n", stream->data);
+    // Ouverture du fichier en mode ecriture en fin de fichier et en binaire
+    FILE* fichier = fopen(stream->nom, "ab");
+
+    // Ecriture de l'octet stream->data
     fputc(stream->data, fichier);
+
+    // On re-initialise les parametre pour le prochain appel
     stream->data = 0;
     stream->limite = 8;
+
+    // On ferme le fichier
     fclose(fichier);
 }
 
@@ -155,10 +158,12 @@ void bitstream_flush(struct bitstream *stream)
 // Détruit le bitstream passé en paramètre, en libérant la mémoire qui lui est associée. 
 void bitstream_destroy(struct bitstream *stream);
 
+
+/*
 int main(void)
 {
-    struct bitstream* source = bitstream_create("maxime.jpg");
-    bitstream_write_bits(source, 3, 2, false);
+    struct bitstream* source = bitstream_create("resultat-g8.jpg");
+    bitstream_write_bits(source, 255, 8, true);
     bitstream_write_bits(source, 5, 4, false);
     bitstream_write_bits(source, 1, 5, false);
     bitstream_write_bits(source, 1, 5, false);
@@ -166,3 +171,4 @@ int main(void)
     bitstream_flush(source);
     return EXIT_SUCCESS;
 }
+*/
