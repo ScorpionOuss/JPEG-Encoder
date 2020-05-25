@@ -9,7 +9,7 @@
 struct bitstream {
     char* nom; // nom du fichier dans lequel on écrit
     int8_t limite; // nombre de bit restant dans le buffer (au plus 8)
-    int8_t data[40]; // données
+    uint8_t data; // données ou buffer
 };
 
 
@@ -18,10 +18,8 @@ struct bitstream *bitstream_create(const char *filename)
 {
     struct bitstream* stream = malloc(sizeof(struct bitstream*));
     stream->nom = filename;
-    for(int i=0; i<40; i++)
-    {
-        stream->data[i] = -1;
-    }
+    stream->data = 0;
+    stream->limite = 8;
     return stream;
 }
 
@@ -64,15 +62,6 @@ int nbr_bit_binaire_bitstream(int nbr)
     }
 }
 
-void  affichage_bitstream(struct bitstream*stream)
-//affichage pour tests
-{
-    for(int i=0; i<40; i++)
-    {
-        printf("%i", stream->data[i]);
-    }
-    printf("\n");
-}
 
 // Ecrit nb_bits bits dans le bitstream. La valeur portée par cet ensemble 
 //de bits est value. Le paramètre is_marker permet d'indiquer qu'on est en train 
@@ -83,16 +72,46 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
     // On les mets dans la bitstream
     // D'abord on s'occupe des 0
     int8_t nb_bit_reel = nbr_bit_binaire_bitstream(value);
-
-    if (nb_bits != nb_bit_reel)
+    int32_t difference = nb_bits - nb_bit_reel;
+    while (stream->limite >0 && nb_bits != 0)
     {
-        int8_t difference = nb_bits - nb_bit_reel;
-        for (int i=0; i<difference; i++)
+        printf("Debut d'un tour\n");
+        printf("nb_bits = %i\n", nb_bits);
+        if (difference >0)
         {
-            stream->data[stream->limite + i] = 0;
+            //printf("Premier if");
+            nb_bits -= 1;
+            stream->limite -=1;
+            difference -= 1;
         }
-        stream->limite += difference;
+        else
+        {
+            int32_t power = puissance_bitstream(2, nb_bits-1);
+            if(value >= power)
+            {
+                //printf("Cas où 1");
+                value -= power;
+                stream->limite -= 1;
+                stream->data += 1 << stream->limite;
+                nb_bits -= 1;
+            }
+            else
+            {
+                //printf("Cas où 0");
+                stream->limite -= 1;
+                nb_bits -= 1;
+            }
+        }
     }
+    printf("Etat du buffer %i\n", stream->data);
+    printf("Etat de la limite %i\n", stream->limite);
+    if (stream->limite == 0)
+    {
+        bitstream_flush(stream);
+        bitstream_write_bits(stream, value, nb_bits, false);
+    }
+}
+    /*
     // Decomposition en binaire
     int32_t reste = value;
     for(int j=nb_bit_reel-1; j>=0; j--)
@@ -120,21 +139,30 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
 //    fputc(255, fichier);
 //    fclose(fichier);
 }
-
+*/
 // Force l'exécution des écritures en attente sur le bitstream, s'il en existe.
-void bitstream_flush(struct bitstream *stream);
-
+void bitstream_flush(struct bitstream *stream)
+{
+    FILE* fichier = fopen("test.jpg", "ab");
+    printf("ECRITURE de %i\n", stream->data);
+    fputc(stream->data, fichier);
+    stream->data = 0;
+    stream->limite = 8;
+    fclose(fichier);
+}
 
 
 // Détruit le bitstream passé en paramètre, en libérant la mémoire qui lui est associée. 
 void bitstream_destroy(struct bitstream *stream);
-/*
+
 int main(void)
 {
     struct bitstream* source = bitstream_create("maxime.jpg");
-    bitstream_write_bits(source, 17, 10, false);
-    bitstream_write_bits(source, 5, 7, false);
-    bitstream_write_bits(source, 11, 10, false);
+    bitstream_write_bits(source, 3, 2, false);
+    bitstream_write_bits(source, 5, 4, false);
+    bitstream_write_bits(source, 1, 5, false);
+    bitstream_write_bits(source, 1, 5, false);
+    bitstream_write_bits(source, 1, 5, false);
+    bitstream_flush(source);
     return EXIT_SUCCESS;
 }
-*/
