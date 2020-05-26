@@ -36,7 +36,7 @@ struct bitstream *bitstream_create(const char *filename)
     stream->limite = 8;
     //printf("intermediaire 3\n");
     // S'il y a une erreur
-    stream->fichier = fopen(stream->nom, "ab");
+    stream->fichier = fopen(stream->nom, "wb");
     //printf("fin creation");
     return stream;
 }
@@ -188,7 +188,7 @@ void bitstream_destroy(struct bitstream *stream)
     free(stream);
 }
 
-/*
+
 int main(void)
 {
     //printf("ALLEZ\n");
@@ -199,9 +199,9 @@ int main(void)
         return EXIT_SUCCESS;
     }
 
-   //bitstream_write_bits(source, 255, 8, false);
-    //bitstream_write_bits(source, 5, 4, false);
-    //bitstream_write_bits(source, 1, 4, false);
+    bitstream_write_bits(source, 255, 8, false);
+    bitstream_write_bits(source, 5, 4, false);
+    bitstream_write_bits(source, 1, 4, false);
     //bitstream_write_bits(source, 1, 4, false);
     //bitstream_write_bits(source, 1, 4, false);
     //printf("Dans main");
@@ -209,4 +209,4 @@ int main(void)
     //bitstream_flush(source);
     return EXIT_SUCCESS;
 }
-*/
+
