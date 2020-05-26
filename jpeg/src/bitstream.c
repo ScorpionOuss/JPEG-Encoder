@@ -192,8 +192,14 @@ void bitstream_destroy(struct bitstream *stream)
 int main(void)
 {
     //printf("ALLEZ\n");
-    struct bitstream* source = bitstream_create("resultat-g8.jpg");
-    //bitstream_write_bits(source, 255, 8, false);
+    struct bitstream* source = bitstream_create("./test/resultat-g8.jpg");
+    if (source->fichier == NULL)
+    {
+        printf("ERREUR DE SAISI DU NOM DU FICHIER\n");
+        return EXIT_SUCCESS;
+    }
+
+   //bitstream_write_bits(source, 255, 8, false);
     //bitstream_write_bits(source, 5, 4, false);
     //bitstream_write_bits(source, 1, 4, false);
     //bitstream_write_bits(source, 1, 4, false);
