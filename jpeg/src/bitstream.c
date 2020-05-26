@@ -16,6 +16,7 @@ struct bitstream {
     char* nom; // nom du fichier dans lequel on écrit
     int8_t limite; // nombre de bits libres restant dans le buffer (au plus 8)
     uint8_t data; // données ou buffer
+    FILE* fichier; // fichier de travail
 };
 
 
@@ -30,6 +31,8 @@ struct bitstream *bitstream_create(const char *filename)
     stream->data = 0;
     stream->limite = 8;
 
+    // S'il y a une erreur
+    stream->fichier = fopen(stream->nom, "ab");
     return stream;
 }
 
@@ -77,18 +80,15 @@ int nbr_bit_binaire_bitstream(int nbr)
 // Force l'exécution des écritures en attente sur le bitstream, s'il en existe.
 void bitstream_flush(struct bitstream *stream)
 {
-    // Ouverture du fichier en mode ecriture en fin de fichier et en binaire
-    FILE* fichier = fopen(stream->nom, "ab");
+    if(stream->limite != 8)
+    {
+        // Ecriture de l'octet stream->data
+        fputc(stream->data, stream->fichier);
 
-    // Ecriture de l'octet stream->data
-    fputc(stream->data, fichier);
-
-    // On re-initialise les parametre pour le prochain appel
-    stream->data = 0;
-    stream->limite = 8;
-
-    // On ferme le fichier
-    fclose(fichier);
+        // On re-initialise les parametre pour le prochain appel
+        stream->data = 0;
+        stream->limite = 8;
+    }
 }
 
 
@@ -140,16 +140,19 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
             }
         }
     }
+    printf("En sortie on a data = %i\n", stream->data);
     // Deux possibilités à ce stade : soit on a rempli le buffer et il faut le décharger (flush)
     // soit on a fini d'écrire dans le flux et on attend le suivant (fin de la fonction)
 
     if (stream->limite == 0)
     // Ici on va décharger car le buffer est plein
     {
+        printf("On est ici avec data = %i et marker = %B\n", stream->data, is_marker);
         if (stream->data == 255 && is_marker == false)
         // Si on s'apprête à décharger ff et que ce n'est pas un marqueur,
         // il faut mettre le 00 (byte stuffing)
         {
+            printf("ET là");
             bitstream_flush(stream);
             bitstream_write_bits(stream, 0, 8, false);
         }
@@ -165,19 +168,25 @@ void bitstream_write_bits(struct bitstream *stream, uint32_t value, uint8_t nb_b
 
 
 // Détruit le bitstream passé en paramètre, en libérant la mémoire qui lui est associée. 
-void bitstream_destroy(struct bitstream *stream);
+void bitstream_destroy(struct bitstream *stream)
+{
+    // On ferme le fichier
+    fclose(stream->fichier);
 
-
+    // On libère la mémoire
+    free(stream);
+}
 
 /*
 int main(void)
 {
     struct bitstream* source = bitstream_create("resultat-g8.jpg");
-    bitstream_write_bits(source, 255, 8, true);
+    bitstream_write_bits(source, 255, 8, false);
     bitstream_write_bits(source, 5, 4, false);
-    bitstream_write_bits(source, 1, 5, false);
-    bitstream_write_bits(source, 1, 5, false);
-    bitstream_write_bits(source, 1, 5, false);
+    bitstream_write_bits(source, 1, 4, false);
+    bitstream_write_bits(source, 1, 4, false);
+    bitstream_write_bits(source, 1, 4, false);
+    bitstream_write_bits(source, 1067590, 32, false);
     bitstream_flush(source);
     return EXIT_SUCCESS;
 }
