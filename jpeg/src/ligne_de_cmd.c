@@ -25,10 +25,9 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
     // Valeur des attribus par défaut
     options->sample = 0;
     options->dtc = 0;
-    options->nom = malloc(13);
-    options->nom = "resultat.jpg";
     options->validite = 1;
     
+    options->nom = NULL;
     // On parcourt tous les "mots" entrés sur la ligne de commande
     int ind;
     for (ind = 2; ind < argc; ind++)
@@ -90,14 +89,13 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
                 // On change le nom en parametre
                 if (limite_depassee == 0)
                 {
-                    free(options->nom);
                     options->nom = malloc((longueur_new)*sizeof(char));
                     for (curseur = 0; curseur < longueur_new; curseur++)
                     {
                         (options->nom)[curseur] = argv[ind][10+curseur];
                     }
                     //printf("\n %s \n", options->nom);
-                    options->validite = 0;
+                    options->validite = 1;
                 }
             }
             // Si --sample=
@@ -151,8 +149,13 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
             options->validite=0;
             printf("Erreur de lecture, consultez --help\n");
         }
-    }
 
+    }
+    if (options->nom==NULL)
+    {
+    options->nom = malloc(13*sizeof(char));
+    options->nom = "resultat.jpg";
+    }
     return options;
 }
 

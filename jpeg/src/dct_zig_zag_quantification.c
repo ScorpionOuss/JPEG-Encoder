@@ -131,7 +131,7 @@ float transformation(uint8_t** s, int i, int j, float** cosinus)
     {
         for (y=0; y<8; y++)
         {
-            somme += ((uint8_t) *(*(s+x)+y)-128) * cosinus[x][i] * cosinus[y][j];
+            somme += ((uint8_t) *(*(s+x)+y)-128) *((float)cosinus[x][i]) *((float) cosinus[y][j]);
         }
     }
 
@@ -232,7 +232,7 @@ float transformation_naive(uint8_t** s, int i, int j)
 }
 
 
-int t[8][8] = {0};
+//int t[8][8] = {0};
 int** dtc_naif(uint8_t** t)
 {
     //printf(" %d \n", *(*(t+1)+2));
@@ -357,7 +357,7 @@ void affichage_dct(int** t)
 
 
 
-void affichage_data(int** t)
+void affichage_data(uint8_t** t)
 // Affichage des valeurs du bloc initial
 {
     printf(" Affichage données d'entrées de dct: \n");
@@ -392,7 +392,6 @@ int32_t* operations_dct_quantification_puis_zig_zag(uint8_t** data, int cc, floa
 {
     // Affichage des données d'entrée au terme de la mise sous forme de MCU
     // ie traitement par bloc 8x8 à partir d'ici
-    affichage_data(data);
 
     return quantification(zigZag(dtc(data, cosinus)), cc);
 }

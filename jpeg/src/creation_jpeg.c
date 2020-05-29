@@ -946,8 +946,6 @@ int main(int argc, char const *argv[])
         /* récupération de l'image et création des données */
         *entete = entete1 -> largeur;
         *(entete+1) = entete1 -> longueur;
-        //entete = recuper_entete(argv[1]);
-        //data = recuper_data(argv[1], entete);
         
         //CAS GRIS:
         if (entete1->type == 53)
@@ -1063,10 +1061,7 @@ int main(int argc, char const *argv[])
         int8_t taille = 64;
         int tab[2]={0, 0};
         jpeg_write_header(image);
-        if (dct==1)
-        {
         cosinus = precalculcos(largeur, hauteur);
-        }
         for (int i=0; i<nbr_MCU;i++)
         {
         if (echantillonage==0)
@@ -1098,6 +1093,7 @@ int main(int argc, char const *argv[])
         free(ptr_tab_data);
         }
         free(ptr_sur_tab_MCU);
+        /*
         if (dct==1)
         {
         tab[0] = hauteur; 
@@ -1108,6 +1104,7 @@ int main(int argc, char const *argv[])
         }
         free(cosinus);
         }
+        */
         jpeg_write_footer(image);
         jpeg_destroy(image);
         /* fin*/ 
