@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <math.h>
 #include <qtables.h>
@@ -92,8 +93,12 @@ int *zigZag(int** tab)
     vecteurRes[63] = *(*(tab+7)+7);
 
     // Test affichage
-    affichage_zigzag(vecteurRes);
-
+    for (int i=0; i<8; i++)
+    {
+    free(tab[i]);
+    }
+    free(tab);
+    free(indiceCour);
     return vecteurRes;
 }
 
@@ -112,7 +117,7 @@ float fonctionC(int32_t indice)
 
 
 
-float transformation(int32_t** s, int i, int j, float** cosinus)
+float transformation(uint8_t** s, int i, int j, float** cosinus)
 // Réalise le calcul de DCT proprement dit. La double boucle calcule la somme.
 // Le résultat total est fourni par return
 {
@@ -126,7 +131,7 @@ float transformation(int32_t** s, int i, int j, float** cosinus)
     {
         for (y=0; y<8; y++)
         {
-            somme += (*(*(s+x)+y)-128) * cosinus[x][i] * cosinus[y][j];
+            somme += ((uint8_t) *(*(s+x)+y)-128) * cosinus[x][i] * cosinus[y][j];
         }
     }
 
@@ -136,7 +141,7 @@ float transformation(int32_t** s, int i, int j, float** cosinus)
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
 
-int** dtc(int32_t** t, float** cosinus)
+int** dtc(uint8_t** t, float** cosinus)
 {
     //printf(" %d \n", *(*(t+1)+2));
     int** nouveau = malloc(8*sizeof(int*));
@@ -168,6 +173,11 @@ int** dtc(int32_t** t, float** cosinus)
         }
     }
     affichage_dct(nouveau);
+    for (int i=0; i<8; i++)
+    {
+    free(t[i]);
+    }
+    free(t);   
     return nouveau;
 }
 
@@ -202,7 +212,7 @@ float** precalculcos(int32_t largeur, int32_t longueur){
 
 
 
-float transformation_naive(int32_t** s, int i, int j)
+float transformation_naive(uint8_t** s, int i, int j)
 {
     int x;
     int y;
@@ -211,7 +221,7 @@ float transformation_naive(int32_t** s, int i, int j)
     {
         for (y=0; y<8; y++)
         {
-            somme += (*(*(s+x)+y)-128) * cosf((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cosf((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
+            somme += ((uint8_t) *(*(s+x)+y)-128) * cosf((2 *(float) x + 1) * ((float)i ) *(pi/((float) 16))) * cosf((2 *(float) y + 1) * ((float)j ) *(pi/((float) 16)));
         }
     }
 
@@ -223,7 +233,7 @@ float transformation_naive(int32_t** s, int i, int j)
 
 
 int t[8][8] = {0};
-int** dtc_naif(int32_t** t)
+int** dtc_naif(uint8_t** t)
 {
     //printf(" %d \n", *(*(t+1)+2));
     int** nouveau = malloc(8*sizeof(int*));
@@ -250,6 +260,12 @@ int** dtc_naif(int32_t** t)
         }
     }
     affichage_dct(nouveau);
+    for (int i=0; i<8; i++)
+    {
+    free(t[i]);
+    }
+    free(t);   
+
     return nouveau;
 }
 
@@ -282,7 +298,7 @@ int32_t* quantification(int* t, int cc)
 
     //Affichage pour test
     affichage_quantification(nouveau);
-
+    free(t);
     return nouveau;
 }
 
@@ -365,12 +381,12 @@ void affichage_data(int** t)
 /*FONCTION PRINCIPALE : GESTION ORDRE OPERATOIRE */
 
 
-int32_t* operations_naives(int32_t** data, int cc) //NOM DE LA FONCTION A CHANGER
+int32_t* operations_naives(uint8_t** data, int cc) //NOM DE LA FONCTION A CHANGER
 {
 
     return quantification(zigZag(dtc_naif(data)), cc);
 }
-int32_t* operations_dct_quantification_puis_zig_zag(int32_t** data, int cc, float** cosinus) //NOM DE LA FONCTION A CHANGER
+int32_t* operations_dct_quantification_puis_zig_zag(uint8_t** data, int cc, float** cosinus) //NOM DE LA FONCTION A CHANGER
 //Fonction qui a partir d'un bloc 8x8 réalise successivement les opérations :
 //dct puis zig-zag puis quantification
 {

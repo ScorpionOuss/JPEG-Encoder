@@ -13,7 +13,6 @@
 // Type opaque représentant le flux d'octets à écrire dans
 //    le fichier JPEG de sortie (appelé bitstream dans le sujet). 
 struct bitstream {
-    char* nom; // nom du fichier dans lequel on écrit
     int8_t limite; // nombre de bits libres restant dans le buffer (au plus 8)
     uint8_t data; // données ou buffer
     FILE* fichier; // fichier de travail
@@ -26,17 +25,17 @@ struct bitstream *bitstream_create(const char *filename)
 {
     //printf("creation\n");
     // Allocation mémoire de la source
-    struct bitstream* stream = malloc(sizeof(struct bitstream*));
+    struct bitstream* stream = malloc(sizeof(struct bitstream));
     //printf("intermediaire 0 \n");
     // On remplit ses attributs
-    stream->nom = filename;
     //printf("intermediaire 1\n");
     stream->data = 0;
     //printf("intermediaire 2\n");
     stream->limite = 8;
     //printf("intermediaire 3\n");
     // S'il y a une erreur
-    stream->fichier = fopen(stream->nom, "wb");
+    FILE *fichier = fopen(filename, "wb");
+    stream->fichier = fichier;
     //printf("fin creation");
     return stream;
 }
@@ -188,7 +187,7 @@ void bitstream_destroy(struct bitstream *stream)
     free(stream);
 }
 
-
+/*
 int main(void)
 {
     //printf("ALLEZ\n");
@@ -209,4 +208,4 @@ int main(void)
     //bitstream_flush(source);
     return EXIT_SUCCESS;
 }
-
+*/
