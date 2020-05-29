@@ -21,7 +21,6 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
 {
     // On alloue la mémoire nécessaire
     struct ligne_cmd* options = malloc(sizeof(struct ligne_cmd));
-    printf("ICI");
     // Valeur des attribus par défaut
     options->sample = 0;
     options->dtc = 0;
@@ -94,7 +93,6 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
                     {
                         (options->nom)[curseur] = argv[ind][10+curseur];
                     }
-                    //printf("\n %s \n", options->nom);
                     options->validite = 1;
                 }
             }
