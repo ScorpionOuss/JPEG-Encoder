@@ -88,7 +88,7 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
                 // On change le nom en parametre
                 if (limite_depassee == 0)
                 {
-                    options->nom = malloc((longueur_new)*sizeof(char));
+                    options->nom = malloc((longueur_new +1)*sizeof(char));
                     for (curseur = 0; curseur < longueur_new +1; curseur++)
                     {
                         (options->nom)[curseur] = argv[ind][10+curseur];
