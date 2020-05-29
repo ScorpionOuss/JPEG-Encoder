@@ -13,6 +13,10 @@ D'un point de vue des fonctionnalités :
 - enfin notre encodeur ne gère pas les commentaires inclus dans les images (la fonction a été codé dans jpeg-writer mais nous n'avons pas eu
 la possibilité de la faire marcher
 
+
+Concernant les affichages "de debug", il y a la possibilité de recuperer certaines étapes intermédiaires en décommentant les lignes 262 et 300
+du fichier src/dct_zig_zag_quantification.c
+
 Le code est a priori commenté (avec différents niveaux de précision en fonction des fonctions et / ou modules) et mis en page.
 Nous vous souhaitons une bonne analyse du code et restons joignable par mail ou discord si vous avez des questions.
 
