@@ -48,23 +48,11 @@ int determiner(struct huff_table *ht, uint8_t value)
     return compteur;
 }
 
-/*
-uint32_t interpreterCommeEntier(char* chaine)
-{
-    int i=0, n=0;
-    for (i=0; *(chaine + i) != "\0"; i++)
-    {
-        n = 10*n + chaine[i] - '0';
-    }
-    return n;
-}
-*/
 
 uint32_t* update(uint32_t* table, int taille)
 {
     if (table == NULL)
     {
-        printf(" cas NULL %d \n",taille);
         uint32_t* tab_retour = malloc(2*sizeof(uint32_t));
         tab_retour[0] = 0;
         tab_retour[1] = 1;
@@ -150,7 +138,7 @@ void huffman_table_destroy(struct huff_table *ht)
 // On libère la mémoire : d'abord les arguments puis la structure
 {
     //free(ht -> nb_symb_per_lengths);
-    //free(ht -> symbols);
+   // free((ht) -> symbols);
     free(ht);
 }
 

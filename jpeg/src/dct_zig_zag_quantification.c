@@ -6,7 +6,7 @@
 
 #define pi 3.1415927
 
-void parcoursCroissant(float** tab, float *vecteur, int x, int y, int *adresse)
+void parcoursCroissant(int** tab, int *vecteur, int x, int y, int *adresse)
 {
     if (y==0)
     {
@@ -16,7 +16,6 @@ void parcoursCroissant(float** tab, float *vecteur, int x, int y, int *adresse)
             vecteur[*adresse] = *(*(tab+absc)+ordo);
             absc -=1;
             ordo += 1;
-            //printf("abscisse %d, ordonnée %d\n", absc, ordo);
             *adresse += 1;
         }
     }
@@ -36,7 +35,7 @@ void parcoursCroissant(float** tab, float *vecteur, int x, int y, int *adresse)
 
 
 
-void parcoursDecroissant(float** tab, float *vecteur, int x, int y, int *adresse)
+void parcoursDecroissant(int** tab, int *vecteur, int x, int y, int *adresse)
 {
     if (y==0)
     {
@@ -95,7 +94,7 @@ int *zigZag(int** tab)
     // Test affichage
     for (int i=0; i<8; i++)
     {
-    free(tab[i]);
+        free(tab[i]);
     }
     free(tab);
     free(indiceCour);
@@ -172,7 +171,7 @@ int** dtc(uint8_t** t, float** cosinus)
             }
         }
     }
-    affichage_dct(nouveau);
+    //affichage_dct(nouveau);
     for (int i=0; i<8; i++)
     {
     free(t[i]);
@@ -195,15 +194,15 @@ float** precalculcos(int32_t largeur, int32_t longueur){
     }
 
     float **cosinus = malloc(maxi*sizeof(float*));
-    for (size_t i = 0; i < maxi; i++) 
+    for (int i = 0; i < maxi; i++) 
     {
         cosinus[i] = malloc(8*sizeof(float));
     }
-    for (size_t i = 0; i < maxi; i++)
+    for (int i = 0; i < maxi; i++)
     {
-        for (size_t x = 0; i < 8; i++)
+        for (int x = 0; i < 8; i++)
         {
-            cosinus[i][x] = cosf((2 *(float) x + 1) * ((float) i ) *(pi/((float) 16)));
+            cosinus[i][x] = (float) cos((2 *(float) x + 1) * ((float) i ) *(pi/((float) 16)));
         }
     }
 
@@ -226,7 +225,6 @@ float transformation_naive(uint8_t** s, int i, int j)
     }
 
     
-    //printf("Aux coord i=%i j=%i, %f \n", i, j, (0.25)*fonctionC(i)*fonctionC(j)*somme);
     
     return (0.25)*fonctionC(i)*fonctionC(j)*somme;
 }
@@ -235,7 +233,6 @@ float transformation_naive(uint8_t** s, int i, int j)
 //int t[8][8] = {0};
 int** dtc_naif(uint8_t** t)
 {
-    //printf(" %d \n", *(*(t+1)+2));
     int** nouveau = malloc(8*sizeof(int*));
     for (size_t i = 0; i < 8; i++) {
       nouveau[i] = malloc(8*sizeof(int));
@@ -247,19 +244,10 @@ int** dtc_naif(uint8_t** t)
         for (j=0; j < 8; j++)
         {
             int entier = (int) transformation_naive(t, i, j);
-            float flottant = transformation_naive(t, i, j);
-            if (flottant > 0 && (int) (flottant + 0.0001) != entier){
-                nouveau[i][j] = entier + 1;
-                printf("ICI C EST SPECIAL VPLUS !!!!!, %f, %f, %i", flottant, flottant + 0.0001, entier);
-                printf("Nouvelle valeur %i", nouveau[i][j]);
-            }
-            else
-                {
-                nouveau[i][j] = entier;
-                }
+            nouveau[i][j] = entier;
         }
     }
-    affichage_dct(nouveau);
+    //affichage_dct(nouveau);
     for (int i=0; i<8; i++)
     {
     free(t[i]);
@@ -297,7 +285,7 @@ int32_t* quantification(int* t, int cc)
     }
 
     //Affichage pour test
-    affichage_quantification(nouveau);
+    //affichage_quantification(nouveau);
     free(t);
     return nouveau;
 }
@@ -322,7 +310,7 @@ void affichage_quantification(int* t)
 }
 
 
-
+/*
 void affichage_zigzag(float* t)
 // Affichage des valeurs du bloc après zig-zag
 {
@@ -336,7 +324,7 @@ void affichage_zigzag(float* t)
     printf("\n");
 }
 
-
+*/
 
 void affichage_dct(int** t)
 // Affichage des valeurs du bloc après DCT
@@ -386,7 +374,7 @@ int32_t* operations_naives(uint8_t** data, int cc) //NOM DE LA FONCTION A CHANGE
 
     return quantification(zigZag(dtc_naif(data)), cc);
 }
-int32_t* operations_dct_quantification_puis_zig_zag(uint8_t** data, int cc, float** cosinus) //NOM DE LA FONCTION A CHANGER
+int32_t* operations_dct_zig_zag_quantification(uint8_t** data, int cc, float** cosinus) //NOM DE LA FONCTION A CHANGER
 //Fonction qui a partir d'un bloc 8x8 réalise successivement les opérations :
 //dct puis zig-zag puis quantification
 {

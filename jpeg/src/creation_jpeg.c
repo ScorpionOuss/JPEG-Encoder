@@ -7,6 +7,7 @@
 #include "huffman.h"
 #include "ligne_de_cmd.h"
 #define pi 3.1415927
+
 /* partie recupération des datas */
 // structure entete
 struct Entete {
@@ -24,7 +25,7 @@ uint8_t** ptr_sur_tab_retour_echantillonage2(uint8_t*** ptr_sur_tab, int i, int 
     uint8_t Rs3, Gs3, Bs3;
    
     uint8_t** data = malloc(8*sizeof(uint8_t*));
-    for (size_t i3 = 0; i3 < 8; i3++)
+    for (int i3 = 0; i3 < 8; i3++)
     {
         data[i3] = malloc(8*sizeof(uint8_t));
     }
@@ -89,13 +90,12 @@ uint8_t** ptr_sur_tab_retour_echantillonage2(uint8_t*** ptr_sur_tab, int i, int 
 uint8_t** ptr_sur_tab_retour_echantillonage1(uint8_t*** ptr_sur_tab, int i, int j, int p, int largeur)
 {
     uint8_t** data = malloc(8*sizeof(uint8_t*));
-    for (size_t i3 = 0; i3 < 8; i3++)
+    for (int i3 = 0; i3 < 8; i3++)
     {
       data[i3] = malloc(8*sizeof(uint8_t));
     }
     uint8_t R, G, B;
     uint8_t Rs, Gs, Bs;
-    printf("ECHANTILLONAGE 1 \n %d %d %d", i, j, largeur);
     for (int i1 = 0; i1<8; i1++)
         {
         for (int j1 = 0; j1<8; j1++)
@@ -181,20 +181,20 @@ uint8_t ***bonne_taille_couleur_ssechantillonnage(uint8_t ***data, int32_t* ente
         
     // On créé un nouveau tableau data aux bonnes dimensions
     uint8_t*** data_new = malloc(bonne_ordonnee*sizeof(uint8_t*));
-    for (size_t i = 0; i < bonne_ordonnee; i++)
+    for (int i = 0; i < bonne_ordonnee; i++)
     {
         data_new[i] = malloc(bonne_abscisse*sizeof(uint8_t*));
-        for (size_t j = 0; j < bonne_abscisse; j++)
+        for (int j = 0; j < bonne_abscisse; j++)
         {
             data_new[i][j] = malloc(3*sizeof(uint8_t));
         }
     }
     // On le remplit avec les anciennes valeurs
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
-        for (size_t x = 0; x < *(entete); x++)
+        for (int x = 0; x < *(entete); x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[y][x][z];
             }
@@ -202,31 +202,31 @@ uint8_t ***bonne_taille_couleur_ssechantillonnage(uint8_t ***data, int32_t* ente
     }
     // On met les nouvelles valeurs
     // En bas d'abord
-    for (size_t y = *(entete+1); y < bonne_ordonnee; y++)
+    for (int y = *(entete+1); y < bonne_ordonnee; y++)
     {
-        for (size_t x = 0; x < *entete; x++)
+        for (int x = 0; x < *entete; x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[*(entete+1)-1][x][z];
             }
         }
     }
     // Puis à droite
-    for (size_t y = 0; y < bonne_ordonnee; y++)
+    for (int y = 0; y < bonne_ordonnee; y++)
     {
-        for (size_t x = *entete; x < bonne_abscisse; x++)
+        for (int x = *entete; x < bonne_abscisse; x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[*(entete+1)-1][*entete -1][z];
             }
         }
     }
 
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
-        for (size_t x = 0; x <*entete; x++)
+        for (int x = 0; x <*entete; x++)
         {
            free(data[y][x]);
         }
@@ -255,10 +255,10 @@ int max(int t[2])
 uint8_t ***Y_Cb_Cr(uint8_t*** data, int32_t longueur, int32_t largeur)
 {
     uint8_t*** data_nouv = malloc(longueur*sizeof(uint8_t**));
-    for (size_t i = 0; i < longueur; i++)
+    for (int i = 0; i < longueur; i++)
     {
         data_nouv[i] = malloc(largeur*sizeof(uint8_t*));
-        for (size_t j = 0; j < largeur; j++)
+        for (int j = 0; j < largeur; j++)
         {
             data_nouv[i][j] = malloc(3*sizeof(uint8_t));
         }
@@ -270,9 +270,9 @@ uint8_t ***Y_Cb_Cr(uint8_t*** data, int32_t longueur, int32_t largeur)
     uint8_t G;
     uint8_t B;
 
-    for (size_t lon = 0; lon < longueur; lon++)
+    for (int lon = 0; lon < longueur; lon++)
     {
-        for (size_t lar = 0; lar < largeur; lar++)
+        for (int lar = 0; lar < largeur; lar++)
         {
             R = data[lon][lar][0];
             G = data[lon][lar][1];
@@ -282,9 +282,9 @@ uint8_t ***Y_Cb_Cr(uint8_t*** data, int32_t longueur, int32_t largeur)
             data_nouv[lon][lar][2] = (int) round(0.5 * (float) R - 0.4187* (float) G - 0.0813 * (float) B + 128);
         }
     }
-    for (size_t lon = 0; lon < longueur; lon++)
+    for (int lon = 0; lon < longueur; lon++)
     {
-        for (size_t lar = 0; lar < largeur; lar++)
+        for (int lar = 0; lar < largeur; lar++)
         {
             free(data[lon][lar]);
         }
@@ -295,18 +295,18 @@ uint8_t ***Y_Cb_Cr(uint8_t*** data, int32_t longueur, int32_t largeur)
 }
 
 // récupération des pixel des fichiers pgm dans une matrice de taille "longueurXlargeur"
-uint8_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longueur, int32_t taille)
+uint8_t **recuper_data_gris(const char* file_pgm,int largeur,int longueur, int32_t taille)
 {
     FILE* fichier = fopen(file_pgm, "r+");
     uint8_t** data = malloc(longueur*sizeof(uint8_t*));
-    for (size_t i = 0; i < longueur; i++)
+    for (int i = 0; i < longueur; i++)
     {
         data[i] = malloc(largeur*sizeof(uint8_t));
     }
     fseek(fichier, taille, SEEK_SET);
-    for (size_t y = 0; y < longueur; y++)
+    for (int y = 0; y < longueur; y++)
     {
-        for (size_t x = 0; x < largeur; x++)
+        for (int x = 0; x < largeur; x++)
         {
             data[y][x] = (uint8_t) fgetc(fichier);
         }
@@ -316,15 +316,15 @@ uint8_t **recuper_data_gris(const char* file_pgm,uint32_t largeur,uint32_t longu
 }
 
 // récupération d'un tableau de trois matrices des couleurs de taille "longueurXlargeur"
-uint8_t ***recuper_data_couleur(const char* file_ppm,uint32_t largeur,uint32_t longueur, int32_t taille)
+uint8_t ***recuper_data_couleur(const char* file_ppm,int largeur,int longueur, int32_t taille)
 {
     FILE* fichier = fopen(file_ppm, "r+");
     uint8_t*** data; // 3 pointeurs vers les trois matrices des différentes couleurs
     data = malloc(longueur*sizeof(uint8_t**));
-    for (size_t j = 0; j < longueur; j++)
+    for (int j = 0; j < longueur; j++)
     {
         data[j] = malloc(largeur*sizeof(uint8_t*));
-        for (size_t i = 0; i < largeur; i++) 
+        for (int i = 0; i < largeur; i++) 
         {
             data[j][i] = malloc(3*sizeof(uint8_t));
         }
@@ -333,11 +333,11 @@ uint8_t ***recuper_data_couleur(const char* file_ppm,uint32_t largeur,uint32_t l
 
     fseek(fichier, taille, SEEK_SET);// on enleve l'entete 11 octets
     // on parcours les données
-    for (size_t y = 0; y < longueur; y++)
+    for (int y = 0; y < longueur; y++)
     {
-        for (size_t x = 0; x < largeur; x++)
+        for (int x = 0; x < largeur; x++)
         {
-            for (size_t i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
             {
                 data[y][x][i] = (uint8_t) fgetc(fichier);
             }
@@ -401,14 +401,14 @@ int32_t** recuper_data(const char* file_pgm, int32_t* entete)
 {
     FILE* fichier = fopen(file_pgm, "r+");
     int32_t** data = malloc(*(entete+1)*sizeof(int32_t*));
-    for (size_t i = 0; i < *(entete+1); i++)
+    for (int i = 0; i < *(entete+1); i++)
     {
         data[i] = malloc(*(entete)*sizeof(int32_t));
     }
     fseek(fichier, *(entete+3), SEEK_SET);
-    for (size_t y = 0; y < *(entete+1); y++) 
+    for (int y = 0; y < *(entete+1); y++) 
     {
-        for (size_t x = 0; x < *(entete); x++)
+        for (int x = 0; x < *(entete); x++)
         {
             data[y][x] = fgetc(fichier);
         }
@@ -434,14 +434,14 @@ uint8_t **bonne_taille(uint8_t **data, int32_t* entete)
         
     // On créé un nouveau tableau data aux bonnes dimensions
     uint8_t** data_new = malloc(bonne_ordonnee*sizeof(uint8_t*));
-    for (size_t i = 0; i < bonne_ordonnee; i++)
+    for (int i = 0; i < bonne_ordonnee; i++)
     {
         data_new[i] = malloc(bonne_abscisse*sizeof(uint8_t));
     }
     // On le remplit avec les anciennes valeurs
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
-        for (size_t x = 0; x < *(entete); x++)
+        for (int x = 0; x < *(entete); x++)
         {
             data_new[y][x] = data[y][x];
         }
@@ -449,23 +449,23 @@ uint8_t **bonne_taille(uint8_t **data, int32_t* entete)
         
     // On met les nouvelles valeurs
     // En bas d'abord
-    for (size_t y = *(entete+1); y < bonne_ordonnee; y++)
+    for (int y = *(entete+1); y < bonne_ordonnee; y++)
     {
-        for (size_t x = 0; x < *entete; x++)
+        for (int x = 0; x < *entete; x++)
         {
             data_new[y][x] = data[*(entete+1)-1][x];
         }
     }
     // Puis à droite
-    for (size_t y = 0; y < bonne_ordonnee; y++)
+    for (int y = 0; y < bonne_ordonnee; y++)
     {
-        for (size_t x = *entete; x < bonne_abscisse; x++)
+        for (int x = *entete; x < bonne_abscisse; x++)
         {
             data_new[y][x] = data[*(entete+1)-1][*entete -1];
         }
     }
 
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
         free(data[y]);
     }
@@ -491,21 +491,21 @@ uint8_t ***bonne_taille_couleur(uint8_t ***data, int32_t* entete)
         
     // On créé un nouveau tableau data aux bonnes dimensions
     uint8_t*** data_new = malloc(bonne_ordonnee*sizeof(uint8_t**));
-    for (size_t i = 0; i < bonne_ordonnee; i++)
+    for (int i = 0; i < bonne_ordonnee; i++)
     {
       data_new[i] = malloc(bonne_abscisse*sizeof(uint8_t*));
-        for (size_t j = 0; j < bonne_abscisse; j++)
+        for (int j = 0; j < bonne_abscisse; j++)
         {
             data_new[i][j] = malloc(3*sizeof(uint8_t));
         }
     }
     
     // On le remplit avec les anciennes valeurs
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
-        for (size_t x = 0; x < *(entete); x++)
+        for (int x = 0; x < *(entete); x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[y][x][z];
             }
@@ -514,30 +514,30 @@ uint8_t ***bonne_taille_couleur(uint8_t ***data, int32_t* entete)
 
     // On met les nouvelles valeurs
     // En bas d'abord
-    for (size_t y = *(entete+1); y < bonne_ordonnee; y++)
+    for (int y = *(entete+1); y < bonne_ordonnee; y++)
     {
-        for (size_t x = 0; x < *entete; x++)
+        for (int x = 0; x < *entete; x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[*(entete+1)-1][x][z];
             }
         }
     }
     // Puis à droite
-    for (size_t y = 0; y < bonne_ordonnee; y++)
+    for (int y = 0; y < bonne_ordonnee; y++)
     {
-        for (size_t x = *entete; x < bonne_abscisse; x++)
+        for (int x = *entete; x < bonne_abscisse; x++)
         {
-            for (size_t z = 0; z<3; z++)
+            for (int z = 0; z<3; z++)
             {
                 data_new[y][x][z] = data[*(entete+1)-1][*entete -1][z];
             }
         }
     }
-    for (size_t y = 0; y < *(entete+1); y++)
+    for (int y = 0; y < *(entete+1); y++)
     {
-        for (size_t x = 0; x < *(entete); x++)
+        for (int x = 0; x < *(entete); x++)
         {
             free(data[y][x]);
         }
@@ -558,7 +558,7 @@ int32_t *recuper_entete(const char* file_pgm)
     int compteur = 0;
     int nbr=0;
     int current = 0;
-    int str[4];
+    char str[4]; 
     str[0] = fgetc(fichier);
     str[1] = fgetc(fichier);
     str[2] = fgetc(fichier);
@@ -703,7 +703,7 @@ uint8_t*** zigzag_bloc(uint8_t** ptr_sur_tab, int* entete)
     }
  
     uint8_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(uint8_t***));
-    for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) 
+    for (int i3 = 0; i3 < (int) hauteur/8; i3++) 
     {
         ptr_sur_tab_retour[i3] = malloc(((int) largeur/8)*sizeof(uint8_t**));
     }
@@ -713,7 +713,7 @@ uint8_t*** zigzag_bloc(uint8_t** ptr_sur_tab, int* entete)
         {
     
             uint8_t** data = malloc(8*sizeof(uint8_t*));
-            for (size_t i3 = 0; i3 < 8; i3++)
+            for (int i3 = 0; i3 < 8; i3++)
             {
                 data[i3] = malloc(8*sizeof(uint8_t));
             }
@@ -733,7 +733,7 @@ uint8_t*** zigzag_bloc(uint8_t** ptr_sur_tab, int* entete)
     {
         ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i/(largeur/8)][(i)%(largeur/8)];
     }
-    for (size_t i3 = 0; i3 < (int) hauteur/8; i3++)
+    for (int i3 = 0; i3 < (int) hauteur/8; i3++)
     {
         free(ptr_sur_tab_retour[i3]);
     }
@@ -784,7 +784,7 @@ uint8_t ***zigzag_bloc_couleur(uint8_t*** ptr_sur_tab, int* entete, int echantil
     {
  
         uint8_t ****ptr_sur_tab_retour = malloc(((int) hauteur / 8)* sizeof(uint8_t***));
-        for (size_t i3 = 0; i3 < (int) hauteur/8; i3++)
+        for (int i3 = 0; i3 < (int) hauteur/8; i3++)
         {
             ptr_sur_tab_retour[i3] = malloc(((int) largeur*3/8)*sizeof(uint8_t**));
         }
@@ -795,7 +795,7 @@ uint8_t ***zigzag_bloc_couleur(uint8_t*** ptr_sur_tab, int* entete, int echantil
                 for (int i2= 0; i2<3; i2++)
                 {
                     uint8_t** data = malloc(8*sizeof(uint8_t*));
-                    for (size_t i3 = 0; i3 < 8; i3++)
+                    for (int i3 = 0; i3 < 8; i3++)
                     {
                         data[i3] = malloc(8*sizeof(uint8_t));
                     }
@@ -815,7 +815,7 @@ uint8_t ***zigzag_bloc_couleur(uint8_t*** ptr_sur_tab, int* entete, int echantil
         {
             ptr_sur_tab_retour_ordonnee[i] = ptr_sur_tab_retour[i/(3*largeur/8)][(i)%(3*largeur/8)];
         }
-        for (size_t i3 = 0; i3 < (int) hauteur/8; i3++) {
+        for (int i3 = 0; i3 < (int) hauteur/8; i3++) {
         free(ptr_sur_tab_retour[i3]);
         }
         free(ptr_sur_tab_retour); 
@@ -907,17 +907,6 @@ uint8_t ***zigzag_bloc_couleur(uint8_t*** ptr_sur_tab, int* entete, int echantil
 
     return ptr_sur_tab_retour_ordonnee;  
 }
-void affichage_data2(int t[8][8])
-{
-    for (int i=0; i<8;i++)
-    {
-        for (int j=0; j<8; j++)
-        {
-            printf("%d ->",t[i][j]);
-        }
-        printf("\n");
-    }
-}
 int main(int argc, char const *argv[])
 {
     //  <<Travail préliminaire>>
@@ -934,7 +923,6 @@ int main(int argc, char const *argv[])
     char* outfile; 
     struct ligne_cmd *commandes;
     struct jpeg *image;
-    struct bitstream *stream;
     
     //Récupération des options 
     commandes = lecture_ligne_cmd(argc, argv); 
@@ -955,178 +943,175 @@ int main(int argc, char const *argv[])
     //CAS GRIS:
     if (entete1->type == 53)
     {
-    uint8_t** data = NULL;   // le contenu, les pixels
-    uint8_t** data_new = NULL;
-    int exDC = 0;
-    printf("Initialisation Image\n");
-    image = creation_jpeg(entete, outfile);
-    printf("DATA recupération Gris \n");
-    data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
-    affichage_data2(data);    
-    printf("Fin DATA recupération Gris \n");
-    
-    //mise sous bonne dimmentions de l'image 
-    data_new = bonne_taille(data, entete);
-    //Formation d'un pointeur sur l'ensemble des MCUs 
-    ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
-    
-    
-    //Définition des bonnes dimmentions
-    int largeur = *entete;
-    if (*entete % 8 != 0)
-    {
-    largeur += 8 - *entete % 8;
-    }
-    
-    int hauteur = *(entete+1);
-    if (*(entete+1) % 8 != 0)
-    {
-    hauteur += (8 - *(entete+1) % 8);
-    }
+        uint8_t** data = NULL;   // le contenu, les pixels
+        uint8_t** data_new = NULL;
+        int exDC = 0;
+        printf("Initialisation Image\n");
+        image = creation_jpeg(entete, outfile);
+        printf("DATA recupération Gris \n");
+        data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
+        printf("Fin DATA recupération Gris \n");
+        
+        //mise sous bonne dimmentions de l'image 
+        data_new = bonne_taille(data, entete);
+        //Formation d'un pointeur sur l'ensemble des MCUs 
+        ptr_sur_tab_MCU = zigzag_bloc(data_new, entete); 
+        
+        
+        //Définition des bonnes dimmentions
+        int largeur = *entete;
+        if (*entete % 8 != 0)
+        {
+            largeur += 8 - *entete % 8;
+        }
+        
+        int hauteur = *(entete+1);
+        if (*(entete+1) % 8 != 0)
+        {
+            hauteur += (8 - *(entete+1) % 8);
+        }
 
-    
-    /*DCT + ZigZagi*/
-    nbr_MCU = (largeur/8)*(hauteur/8);
-    int32_t* ptr_tab_data; 
-    int8_t taille = 64;
-    //Ecriture de l'entête
-    jpeg_write_header(image);
-    for (int i=0; i<nbr_MCU;i++)
-    {
-    /* Opérations: DCT, zigzag et quantification*/
-    ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), 0); 
-    /* Huffman + ecriture dans le bitstream */
-    gestion_compression(image, ptr_tab_data, taille, exDC, 0);
-    exDC = *ptr_tab_data;
+        
+        /*DCT + ZigZagi*/
+        nbr_MCU = (largeur/8)*(hauteur/8);
+        int32_t* ptr_tab_data; 
+        int8_t taille = 64;
+        //Ecriture de l'entête
+        jpeg_write_header(image);
+        for (int i=0; i<nbr_MCU;i++)
+        {
+            /* Opérations: DCT, zigzag et quantification*/
+            ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), 0); 
+            /* Huffman + ecriture dans le bitstream */
+            gestion_compression(image, ptr_tab_data, taille, exDC, 0);
+            exDC = *ptr_tab_data;
 
 
-    //Libération de mémoire + Ecriture fin image
-    free(ptr_tab_data);
-    }
-    free(ptr_sur_tab_MCU);
-    jpeg_write_footer(image);
-    jpeg_destroy(image);
-    /* fin CAS GRIS*/
-    }
+            //Libération de mémoire + Ecriture fin image
+            free(ptr_tab_data);
+        }
+        free(ptr_sur_tab_MCU);
+        jpeg_write_footer(image);
+        jpeg_destroy(image);
+        /* fin CAS GRIS*/
+        }
 
 
     /* Avec de la couleur !!!!! */
     else {
-    uint8_t*** data = NULL;   // le contenu, les pixels
-    uint8_t*** data_Y = NULL;   // le contenu, les pixels
-    uint8_t*** data_new = NULL;
-    float** cosinus;
-    int exDC[3] = {0, 0, 0};
-    //Récupération Data
-    data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
-    image = creation_jpeg_couleur(entete, echantillonage, outfile);
-    //Mise en forme des données sous forme de MCU
-    if (echantillonage == 0)
-    {
-    data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
-    data_new = bonne_taille_couleur(data_Y, entete);
-    ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete, 0); 
-    }
-    else
-    {
-    data_new = bonne_taille_couleur_ssechantillonnage(data, entete, echantillonage);
-    ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete,echantillonage);
-    }
-    /* Calcul des bonnes dimmentions */
-    int na, no;
-    na = 16;
-    no = 16;
-    if (echantillonage==1)
-    {
-    no = 8;
-    }
-    if (echantillonage==0)
-    {
-    no = 8;
-    na = 8;
-    }
-    int largeur = *entete;
-    if (*entete % na != 0)
-    {
-    largeur += na - *entete % na;
-    }
-    
-    int hauteur = *(entete+1);
-    if (*(entete+1) % no != 0)
-    {
-    hauteur += (no - *(entete+1) % no);
-    }
+        uint8_t*** data = NULL;   // le contenu, les pixels
+        uint8_t*** data_Y = NULL;   // le contenu, les pixels
+        uint8_t*** data_new = NULL;
+        float** cosinus;
+        int exDC[3] = {0, 0, 0};
+        //Récupération Data
+        data = recuper_data_couleur(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
+        image = creation_jpeg_couleur(entete, echantillonage, outfile);
+        //Mise en forme des données sous forme de MCU
+        if (echantillonage == 0)
+        {
+            data_Y = Y_Cb_Cr(data, entete1-> longueur, entete1->largeur);
+            data_new = bonne_taille_couleur(data_Y, entete);
+            ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete, 0); 
+        }
+        else
+        {
+            data_new = bonne_taille_couleur_ssechantillonnage(data, entete, echantillonage);
+            ptr_sur_tab_MCU = zigzag_bloc_couleur(data_new, entete,echantillonage);
+        }
+        /* Calcul des bonnes dimmentions */
+        int na, no;
+        na = 16;
+        no = 16;
+        if (echantillonage==1)
+        {
+            no = 8;
+        }
+        if (echantillonage==0)
+        {
+            no = 8;
+            na = 8;
+        }
+        int largeur = *entete;
+        if (*entete % na != 0)
+        {
+            largeur += na - *entete % na;
+        }
+        
+        int hauteur = *(entete+1);
+        if (*(entete+1) % no != 0)
+        {
+            hauteur += (no - *(entete+1) % no);
+        }
 
-    
-    /*calcul longueur MCU en fonction de l'echantillonage*/
-    if (echantillonage ==0)
-    {
-    nbr_MCU = (largeur/8)*(hauteur/8)*3;
-    }
-    if (echantillonage == 1)
-    {
-        nbr_MCU = (largeur/16)*(hauteur/8)*4;
-    }
-    if (echantillonage ==2)
-    {
-        nbr_MCU = (largeur/16)*(hauteur/16)*6;
-    }
-    int32_t* ptr_tab_data; 
-    int8_t taille = 64;
-    int tab[2]={0, 0};
-    jpeg_write_header(image);
-    if (dct ==1)
-    {
-    cosinus = precalculcos(largeur, hauteur);
-    }
-    for (int i=0; i<nbr_MCU;i++)
-    {
-    if (echantillonage==0)
-    {
-    tab[1] = i%3;
-    }
-    if (echantillonage==1)
-    {
-    tab[1]=i%4-1;
-    }
-    if (echantillonage==2)
-    {
-    tab[1]=i%6-3;
-    }
-    /* Opérations: DCT, zigzag et quantification avec deux cas: cas optimisé et cas naif*/
-    if (dct==1)
-    {
-    ptr_tab_data = operations_dct_quantification_puis_zig_zag(*(ptr_sur_tab_MCU+i), max(tab), cosinus);
-    }
-    if (dct==0)
-    {
-    ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), max(tab));
-    }
-    /* Huffman + Ecriture dans Bitstream */
-    printf("gestion_compression \n");
-    gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
-    printf("FIN gestion_compression \n");
-    
-    /* Récupération de DC */
-    exDC[max(tab)] = *ptr_tab_data;
-    free(ptr_tab_data);
-    }
-   /*Libération mémoire + Ecriture fin image*/ 
-    
-    free(ptr_sur_tab_MCU);
-    if (dct==1)
-    {
-    tab[0] = hauteur; 
-    tab[1] = largeur;
-    for (int i=0; i<max(tab);i++)
-    {
-    free(cosinus[i]);
-    }
-    free(cosinus);
-    }
-    jpeg_write_footer(image);
-    jpeg_destroy(image);
-    /* FIN CAS COULEUR*/ 
+        
+        /*calcul longueur MCU en fonction de l'echantillonage*/
+        if (echantillonage ==0)
+        {
+            nbr_MCU = (largeur/8)*(hauteur/8)*3;
+        }
+        if (echantillonage == 1)
+        {
+            nbr_MCU = (largeur/16)*(hauteur/8)*4;
+        }
+        if (echantillonage ==2)
+        {
+            nbr_MCU = (largeur/16)*(hauteur/16)*6;
+        }
+        int32_t* ptr_tab_data; 
+        int8_t taille = 64;
+        int tab[2]={0, 0};
+        jpeg_write_header(image);
+        if (dct ==1)
+        {
+            cosinus = precalculcos(largeur, hauteur);
+        }
+        for (int i=0; i<nbr_MCU;i++)
+        {
+            if (echantillonage==0)
+            {
+                tab[1] = i%3;
+            }
+            if (echantillonage==1)
+            {
+                tab[1]=i%4-1;
+            }
+            if (echantillonage==2)
+            {
+                tab[1]=i%6-3;
+            }
+            /* Opérations: DCT, zigzag et quantification avec deux cas: cas optimisé et cas naif*/
+            if (dct==1)
+            {
+                ptr_tab_data = operations_dct_zig_zag_quantification(*(ptr_sur_tab_MCU+i), max(tab), cosinus);
+            }
+            if (dct==0)
+            {
+                ptr_tab_data = operations_naives(*(ptr_sur_tab_MCU+i), max(tab));
+            }
+            /* Huffman + Ecriture dans Bitstream */
+            gestion_compression(image, ptr_tab_data, taille, exDC[max(tab)],max(tab));
+            
+            /* Récupération de DC */
+            exDC[max(tab)] = *ptr_tab_data;
+            free(ptr_tab_data);
+        }
+        /*Libération mémoire + Ecriture fin image*/ 
+        
+        free(ptr_sur_tab_MCU);
+        if (dct==1)
+        {
+        tab[0] = hauteur; 
+        tab[1] = largeur;
+        for (int i=0; i<max(tab);i++)
+        {
+        free(cosinus[i]);
+        }
+        free(cosinus);
+        }
+        jpeg_write_footer(image);
+        jpeg_destroy(image);
+        /* FIN CAS COULEUR*/ 
     };
     free(entete);
     free(entete1);
