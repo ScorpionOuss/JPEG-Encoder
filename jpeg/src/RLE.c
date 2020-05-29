@@ -69,7 +69,6 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 	struct huff_table *pointeur_sur_htable;
     pointeur_sur_htable = jpeg_get_huffman_table(image, sample_type,cc);
 
-                                                                 // A quoi ça sert ?
 
     // On parcourt tous les coefficients AC qu'on écrit successivement dans la bitstream
     for (int indice_tab = 1; indice_tab < taille_tab; indice_tab++)
@@ -117,35 +116,6 @@ void RLE (struct bitstream* stream, int32_t* ptr_sur_tab, uint8_t taille_tab, st
 }
 
 
-/*
-int nbr_bit_binaire(int nbr)
-// Renvoie le nombre de bit nécéssaires à l'écriture du nombre nbr en base 2
-{
-    if ((nbr == 1)||(nbr==0))
-    // Cas de base
-    {
-        return (1);
-    }
-    else
-    // On calcule la puissance de 2 strictement supérieure à nbr
-    {
-        int t = 1;
-        int i = 0;
-        while (t <= nbr)
-        {
-            t = t*2;
-            i++;
-        }
-        return (i);
-    }
-}
-*/
-
-
-
-
-
-
 
 
 
@@ -167,7 +137,7 @@ void gestion_compression(struct jpeg* image, int32_t* ptr_tab, int8_t taille_tab
     struct bitstream* stream;
     stream = jpeg_get_bitstream(image);
 
-    uint8_t sample_type = 0;                                                                                // A quoi ça sert ?
+    uint8_t sample_type = 0;
 
     // On récupère la table de Huffman utile à l'encodage de DC
     struct huff_table* pointeur_sur_htable;
