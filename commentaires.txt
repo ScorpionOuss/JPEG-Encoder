@@ -1,0 +1,18 @@
+Bonjour et bienvenue dans le projet du groupe 8.
+
+Durant le projet, nous avons suivi la démarche incrémentale suggérée par le sujet.
+
+Désormais, notre encodeur JPEG est  fonctionnel et gère les images NB autant que les images couleurs de toute taille avec sous echantillonage.
+De plus, côté mémoire nous avons réussi à libérer l'essentiel de la mémoire utilisée : les résidus sont liés au modules et sont très faibles.
+Par ailleurs, valgrind ne detecte pas d'erreurs de lectures ou ecritures illicites.
+
+D'un point de vue des fonctionnalités :
+
+- les options définis par le sujet fonctionnent et sont définies via l'option --help
+- nous avons codé une version DCT rapide mais qui a tendance a faire des siennes et ne renvoie pas un fichier exact.
+- enfin notre encodeur ne gère pas les commentaires inclus dans les images (la fonction a été codé dans jpeg-writer mais nous n'avons pas eu
+la possibilité de la faire marcher
+
+Le code est a priori commenté (avec différents niveaux de précision en fonction des fonctions et / ou modules) et mis en page.
+Nous vous souhaitons une bonne analyse du code et restons joignable par mail ou discord si vous avez des questions.
+

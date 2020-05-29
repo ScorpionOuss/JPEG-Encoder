@@ -7,27 +7,12 @@
 #include "huffman.h"
 #include "htables.h"
 #include "bitstream.h"
-/*
-struct jpeg *jpeg_create(void)
-{
-    struct jpeg *nouvStruct = malloc(sizeof(struct jpeg));
-    nouvStruct -> ppm_filename = malloc(20 * sizeof(char));
-    nouvStruct -> jpeg_filename = malloc(20 * sizeof(char));
-    nouvStruct -> huffman_table = malloc(NB_SAMPLE_TYPES * sizeof(struct huff_table**));
-    int i=0;
-    for (i; i<NB_SAMPLE_TYPES; i++)
-    {
-       nouvStruct -> huffman_table[i] = malloc(NB_COLOR_COMPONENTS*sizeof(struct huff_table*));
-    }
-    nouvStruct -> sampling_factor = malloc(NB_COLOR_COMPONENTS * sizeof(uint8_t[NB_DIRECTIONS]));
-    for (i = 0; i < NB_COLOR_COMPONENTS; i++)
-    {
-        nouvStruct -> sampling_factor[i] = malloc(NB_DIRECTIONS * sizeof(uint8_t));
-    }
-    nouvStruct -> quantization_table = malloc(NB_COLOR_COMPONENTS*sizeof(uint8_t*));
-    return nouvStruct;
-}
-*/
+
+
+/* Modume JPEG WRITER */
+
+
+
 struct jpeg
 {
     char *ppm_filename;
@@ -53,16 +38,12 @@ struct jpeg *jpeg_create(void)
 void jpeg_destroy(struct jpeg *jpg)
 // On libère la mémoire
 {
-//    printf("PPM_FILENAME : %s\n", jpg->ppm_filename);
     if (jpg->ppm_filename != NULL)
     {
-//        printf("On est passé par là\n");
         free(jpg->ppm_filename);
     }
-//    printf("JPEG_FILENAME : %s\n", jpg->jpeg_filename);
     if (jpg->jpeg_filename != NULL)
     {
-//        printf("On est passé par là aussi\n");
         free(jpg->jpeg_filename);
     }
 
@@ -94,15 +75,12 @@ void jpeg_destroy(struct jpeg *jpg)
 
 void ecriture_SOI(struct jpeg *jpg)
 {
-    printf("entréSOI\n");
     // Marqueur SOI ie ff d8
     bitstream_write_bits(jpg -> bitstream, 65496, 16, true);
-    printf("Fin SOI\n");
 }
 
 void ecriture_APPx(struct jpeg *jpg)
 {
-    printf("entré APPx\n");
     // Marqueur APP0 ie ff e0
     bitstream_write_bits(jpg -> bitstream, 65504, 16, true);
     // Ecriture longueur 10
@@ -192,9 +170,7 @@ void ecriture_vecteur_lengths(struct jpeg *jpg, int i, int a)
     // On parcourt les 16 niveaux de profondeur
     for (compteur=0; compteur < 16; compteur++)
     {
-        printf("On est pour i = %i, ACDC = %i, et on traite la longueur %i\n", i, a, compteur);
         bitstream_write_bits(jpg -> bitstream, *((jpg -> huffman_table[a][i])-> nb_symb_per_lengths + compteur), 8, false);
-        printf("Et c'est un succes\n");
     }
 }
 
@@ -202,12 +178,10 @@ void ecriture_symbols(struct jpeg *jpg, int i, int j)
 // Cette fonction écrit dans la bitstream les symboles de la table
 {
     int compteur;
-    printf("Debut ecriture symboles\n");
     for (compteur=0; compteur < (jpg ->huffman_table[j][i])->nb_symbols; compteur++)
     {
         bitstream_write_bits(jpg -> bitstream, *((jpg ->huffman_table[j][i])->symbols +compteur), 8, false);
     }
-    printf("Fin ecriture symboles\n");
 }
 
 void ecriture_DHT(struct jpeg *jpg)
@@ -319,72 +293,6 @@ void jpeg_write_header(struct jpeg *jpg)
     ecriture_SOFX(jpg);
     ecriture_DHT(jpg);
     ecriture_SOS(jpg);
-    printf("FIN SOS\n");
-    //ecriture_DHT(jpg);
-    /*
-     à implémenter
-     */
-    /* ouverture du fichier binaire (création éventuelle)*/
-    /*
-    FILE* fp;
-    if ((fp = fopen(jpg -> jpeg_filename, "wb")) == NULL)
-    {
-        fprintf(stderr, "problème lors de l'ouverture du fichier");
-    }
-    else
-    */
-        /******* écritue du SOI ***********/
-        /*short int buffer[1] = {0xd8ff};
-        fwrite(buffer, sizeof(short int), 1, fp);*/
-        /******* écriture APPx**********/
-    /*
-        short int buffer2[9] ={0xe0ff, 0x1000, 0x464a, 0x4649, 0x0100, 0x0001, 0x0000, 0x0000, 0x0000};
-        fwrite(buffer2, sizeof(short int), 9, fp);
-    */
-    /******Commentaire *******/
-        // à ajouter s'il y a un commentaire
-        /* DCT*/
-    /*
-        uint8_t i;
-        for (i=0; i<jpg -> nb_components; i++)
-        {
-            uint8_t buffer3[5] = {0xff, 0xdb, 0x00, 0x43, 0x00 + i};
-            fwrite(buffer3, sizeof(uint8_t), 5, fp);
-            fwrite(jpg -> quantization_table[i], sizeof(uint8_t), 64, fp);
-        }*/
-        /* SOFx */
-    /*
-        short int buffer4[2] = {0xc0ff, 0x0800 + 264*3*(jpg -> nb_components) - 0x48};
-        uint8_t Pre= 0x08;
-        short int buffer5[2] = {0x0000 + 16*(jpg -> image_height), 0x0000 + 16*(jpg -> image_width)};
-        fwrite(buffer4, sizeof(short int), 2, fp);
-        fwrite(&Pre, sizeof(uint8_t), 1, fp);
-        fwrite(buffer5, sizeof(short int), 2, fp);
-        fwrite(& jpg-> nb_components, sizeof(uint8_t), 1, fp);
-        for (i=0; i<jpg -> nb_components; i++)
-        {
-            uint8_t buffer6[3] = {0x00 + i, 0x00 + 16*(jpg -> sampling_factor[i][0]) + jpg -> sampling_factor[i][1], 0x00 + i};
-            fwrite(buffer6, sizeof(uint8_t), 3, fp);
-        }
-        /************/
-        /* DHT   */
-        /********
-        int a = 0;
-        for (i=0; i<jpg -> nb_components; i++)
-        {
-            for (a=0; a <2; a++)
-            {
-                short int buffer7[2] = {0xc4ff, 0x1400 + 264*((jpg -> huffman_table[i][a]) -> nb_symbols) + 264*16};
-                uint8_t Nuti = 0x00 + a*8 + i*16;
-                fwrite(buffer7, sizeof(short int), 2, fp);
-                fwrite(&Nuti, sizeof(uint8_t), 1, fp);
-                fwrite((jpg -> huffman_table[i][a]) -> nb_symb_per_lengths, sizeof(uint8_t), 16, fp);
-                fwrite((jpg -> huffman_table[i][a]) -> symbols, sizeof(uint8_t), (jpg -> huffman_table[i][a]) -> nb_symbols, fp);
-            }
-        }*/
-   /* }
-    fclose(fp);
-    */
 }
 
 void jpeg_write_footer(struct jpeg *jpg)
@@ -407,7 +315,6 @@ struct bitstream *jpeg_get_bitstream(struct jpeg *jpg)
 void jpeg_set_ppm_filename(struct jpeg *jpg, const char *ppm_filename)
 {
     int longueur = strlen(ppm_filename);
-    printf("La longueur vaut %i\n", longueur);
     (jpg->ppm_filename) = malloc(longueur + 1);
     strcpy(jpg -> ppm_filename, ppm_filename);
 }
@@ -420,7 +327,6 @@ char *jpeg_get_ppm_filename(struct jpeg *jpg)
 void jpeg_set_jpeg_filename(struct jpeg *jpg, const char *jpeg_filename)
 {
     int longueur = strlen(jpeg_filename);
-    printf("La longueur JPEG vaut %i\n", longueur);
     (jpg->jpeg_filename) = malloc(longueur + 1);
     strcpy(jpg -> jpeg_filename, jpeg_filename);
 }
@@ -464,7 +370,6 @@ void jpeg_set_sampling_factor(struct jpeg *jpg, enum color_component cc, enum di
 {
     if (jpg->sampling_factor == NULL)
     {
-        printf("Nombre compo %i\n",jpg->nb_components);
         uint8_t** sampling_factor_tab = malloc((jpg->nb_components)*sizeof(uint8_t*));
         for (uint32_t i=0; i<jpg->nb_components; i++)
         {
@@ -512,68 +417,4 @@ uint8_t *jpeg_get_quantization_table(struct jpeg *jpg, enum color_component cc)
 {
     return jpg -> quantization_table[cc];
 }
-
-/*
-void main(void)
-{
-    struct jpeg* jpg;
-    printf("hola\n");
-    jpg = jpeg_create();
-    printf("hola\n");
-    jpeg_set_image_width(jpg, 10);
-    printf("hola\n");
-    jpeg_set_image_height(jpg, 20);
-    printf("hola\n");
-    jpeg_set_nb_components(jpg, 3);
-    printf("hola\n");
-    jpeg_set_ppm_filename(jpg, "chaba");
-    printf("hola\n");
-    jpeg_set_jpeg_filename(jpg, "monana.jpg");
-    printf("hola\n");
-
-    int x = 0;
-    int y = 0;
-
-    for (x=0; x<NB_COLOR_COMPONENTS; x++)
-    {
-        for (y=0; y < NB_SAMPLE_TYPES; y++)
-        {
-            struct huff_table* ht;
-            uint8_t* hta = malloc(20*sizeof(uint8_t));
-            int o;
-            for (o=0; o<20; o++)
-            {
-                *(hta + o) = 1;
-            }
-            uint8_t* htables_nb_symb_per = malloc(16 * sizeof(uint8_t));
-            for (o=0; o<16; o++)
-            {
-                *(htables_nb_symb_per + o) = 2;
-            }
-            strcpy(ht -> nb_symb_per_lengths , htables_nb_symb_per);
-            strcpy(ht -> symbols , hta);
-            ht -> nb_symbols = 16;
-            ht = huffman_table_build(htables_nb_symb_per, hta, 20);
-            jpeg_set_huffman_table(jpg, x, y, ht);
-        }
-    }
-    struct bitstream* stream;
-    stream = jpeg_get_bitstream(jpg);
-    stream -> limite = 5;
-    strcpy(stream -> nom, jpg -> jpeg_filename);
-    printf("le nom est : %s\n, la limite est: %d", stream->nom, stream->limite);
-    enum color_component i = Y;
-    enum direction j =H;
-    jpeg_set_sampling_factor(jpg, i, j, 8);
-    enum color_component a=Cb;
-    enum color_component b=Cr;
-    jpeg_set_quantization_table(jpg, i, quantification_table_Y);
-    jpeg_set_quantization_table(jpg, a, quantification_table_CbCr);
-    jpeg_set_quantization_table(jpg, b, quantification_table_CbCr);
-    printf("hola\n");
-    jpeg_write_header(jpg);
-    //jpeg_write_footer(jpg);
-
-}
-*/
 
