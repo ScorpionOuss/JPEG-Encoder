@@ -3,7 +3,7 @@ Bonjour et bienvenue dans le projet du groupe 8.
 Durant le projet, nous avons suivi la démarche incrémentale suggérée par le sujet.
 
 Désormais, notre encodeur JPEG est  fonctionnel et gère les images NB autant que les images couleurs de toute taille avec sous echantillonage.
-De plus, côté mémoire nous avons réussi à libérer l'essentiel de la mémoire utilisée : les résidus sont liés au modules et sont très faibles.
+De plus, côté mémoire nous avons réussi à libérer l'essentiel de la mémoire utilisée : les résidus sont liés au modules et sont très faibles.(huffman_table_built, sampling factor, options->nom)
 Par ailleurs, valgrind ne detecte pas d'erreurs de lectures ou ecritures illicites.
 
 D'un point de vue des fonctionnalités :
@@ -14,7 +14,7 @@ D'un point de vue des fonctionnalités :
 la possibilité de la faire marcher
 
 
-Concernant les affichages "de debug", il y a la possibilité de recuperer certaines étapes intermédiaires en décommentant les lignes 262 et 300
+Concernant les affichages "de debug", il y a la possibilité de recuperer certaines étapes intermédiaires en décommentant les lignes 250 et 288
 du fichier src/dct_zig_zag_quantification.c
 
 Le code est a priori commenté (avec différents niveaux de précision en fonction des fonctions et / ou modules) et mis en page.

@@ -202,7 +202,7 @@ float** precalculcos(int32_t largeur, int32_t longueur){
     {
         for (int x = 0; i < 8; i++)
         {
-            cosinus[i][x] = (float) cos((2 *(float) x + 1) * ((float) i ) *(pi/((float) 16)));
+            cosinus[i][x] = cos((2 *(float) x + 1) * ((float) i ) *(pi/((float) 16)));
         }
     }
 

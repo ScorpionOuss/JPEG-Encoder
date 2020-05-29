@@ -41,8 +41,8 @@ struct ligne_cmd *lecture_ligne_cmd(int argc, char const *argv[])
                 erreur = 0;
                 printf("\n \n \nBonjour et bienvenue dans l'aide.\n \n Trois options peuvent être utilisée sur la ligne de commande :\n \n");
                 printf("\"--help\" que vous venez d'utiliser vous fournit une assitance sur les options disponibles en ligne de commande\n");
-                printf("\"--outfile=nom_du_fichier_a_generer\" qui permet de choisir le nom de votre fichier .jpg de sortie\n");
-                printf("\"--sample=--sample=h1xv1,h2xv2,h3xv3\" qui permet de choisir les coefficients de sous-échantillonnage\n");
+                printf("\"--outfile=nom_du_fichier_a_generer.jpg\" qui permet de choisir le nom de votre fichier jpeg de sortie\n");
+                printf("\"--sample=--sample=h1xv1,h2xv2,h3xv3\" qui permet de choisir les coefficients de sous-échantillonnage\n 2x2,1x1,1x1 ou 2x1,1x1,1x1 \n");
                 printf("\"--dct=naive ou --dct=cos\" pour avoir la version dct optimisée avec précalcul des cos ou non\n");
                 printf("Toute entrée non standardisée selon ce qui précède renverra l'erreur \"Erreur de lecture ligne de commande\"\n \n \n");
 

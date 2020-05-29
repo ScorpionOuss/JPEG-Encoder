@@ -946,11 +946,8 @@ int main(int argc, char const *argv[])
         uint8_t** data = NULL;   // le contenu, les pixels
         uint8_t** data_new = NULL;
         int exDC = 0;
-        printf("Initialisation Image\n");
         image = creation_jpeg(entete, outfile);
-        printf("DATA recupération Gris \n");
         data = recuper_data_gris(argv[1], entete1->largeur, entete1 -> longueur, entete1->nbre_octet); 
-        printf("Fin DATA recupération Gris \n");
         
         //mise sous bonne dimmentions de l'image 
         data_new = bonne_taille(data, entete);
